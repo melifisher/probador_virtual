@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/* import 'package:flutter/material.dart';
 import 'package:arcore_flutter_plugin/arcore_flutter_plugin.dart';
 
 class VirtualFittingRoom extends StatefulWidget {
@@ -32,3 +32,4 @@ class _VirtualFittingRoomState extends State<VirtualFittingRoom> {
     super.dispose();
   }
 }
+ */

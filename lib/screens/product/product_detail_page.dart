@@ -104,7 +104,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 ElevatedButton(
                   onPressed: () async {
                     try {
-                      await _controller.deleteProduct(widget.product!.id!);
+                      await _controller.deleteProduct(widget.product!.id);
                       Navigator.pop(context);
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:probador_virtual/config/environment/environment.dart';
+import 'package:probador_virtual/screens/product/products_page.dart';
+/* 
 import 'package:probador_virtual/screens/product2/product_screen.dart';
-import 'package:probador_virtual/screens/product/products_page.dart'; /* 
 import 'package:provider/provider.dart';
 import 'package:probador_virtual/controllers/product_controller.dart';
 import 'package:probador_virtual/db/database_connection.dart'; */
