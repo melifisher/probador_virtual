@@ -7,7 +7,6 @@ class Environment {
   }
 
   static String apiUrl = kIsWeb
-      ? dotenv.env['API_URL'] ??
-          'No está configurado el API_URL' // URL para web
-      : 'http://192.168.0.20:3000';
+      ? dotenv.env['API_URL'] ?? 'No está configurado el API_URL'
+      : 'http://192.168.0.20:3000'; //poner la api de tu computadora
 }
