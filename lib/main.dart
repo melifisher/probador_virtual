@@ -1,25 +1,18 @@
 import 'package:flutter/material.dart';
-import 'package:probador_virtual/config/environment/environment.dart';
-import 'package:probador_virtual/screens/product/products_page.dart';
-/* 
-import 'package:probador_virtual/screens/product2/product_screen.dart';
-import 'package:provider/provider.dart';
-import 'package:probador_virtual/controllers/product_controller.dart';
-import 'package:probador_virtual/db/database_connection.dart'; */
+import 'config/environment/environment.dart';
+import 'config/theme/app_theme.dart';
+import 'screens/auth/login_page.dart';
+import 'screens/auth/register_page.dart';
+import 'screens/product/products_page.dart';
+import 'screens/product/product_detail_page.dart';
+import 'models/user.dart';
+import 'models/product.dart';
+import '../screens/home_page.dart';
 
 void main() async {
   await Environment.initEnvironment();
   WidgetsFlutterBinding.ensureInitialized();
 
-  /* final dbConnection = DatabaseConnection();
-  await dbConnection.connect();
-
-  runApp(
-    ChangeNotifierProvider(
-      create: (_) => ProductController(dbConnection.connection),
-      child: const MyApp(),
-    ),
-  ); */
   runApp(const MyApp());
 }
 
@@ -29,12 +22,39 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Probador Virtual',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const ProductsPage(),
+      title: 'PROBADOR VIRTUAL',
+      debugShowCheckedModeBanner: false,
+      theme: AppTheme().getTheme(),
+      initialRoute: '/',
+      onGenerateRoute: (settings) {
+        switch (settings.name) {
+          case '/':
+            return MaterialPageRoute(builder: (context) => const HomePage());
+          case '/login':
+            return MaterialPageRoute(builder: (context) => LoginView());
+          case '/register':
+            return MaterialPageRoute(builder: (context) => RegisterView());
+          case '/home':
+            final user = settings.arguments as User;
+            return MaterialPageRoute(
+                builder: (context) => ProductsPage(user: user));
+          case '/product':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (context) => ProductDetailView(
+                product: args['product'] as Product?,
+                userRole: args['userRole'] as String,
+              ),
+            );
+          default:
+            return MaterialPageRoute(
+              builder: (context) => Scaffold(
+                body: Center(
+                    child: Text('No route defined for ${settings.name}')),
+              ),
+            );
+        }
+      },
     );
   }
 }
