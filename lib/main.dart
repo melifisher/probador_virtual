@@ -7,7 +7,10 @@ import 'screens/product/products_page.dart';
 import 'screens/product/product_detail_page.dart';
 import 'models/user.dart';
 import 'models/product.dart';
-import '../screens/home_page.dart';
+import 'models/category.dart';
+import 'screens/home_page.dart';
+import 'screens/category/categories_page.dart';
+import 'screens/category/category_detail_page.dart';
 
 void main() async {
   await Environment.initEnvironment();
@@ -31,18 +34,34 @@ class MyApp extends StatelessWidget {
           case '/':
             return MaterialPageRoute(builder: (context) => const HomePage());
           case '/login':
-            return MaterialPageRoute(builder: (context) => LoginView());
+            return MaterialPageRoute(builder: (context) => const LoginView());
           case '/register':
-            return MaterialPageRoute(builder: (context) => RegisterView());
-          case '/home':
-            final user = settings.arguments as User;
             return MaterialPageRoute(
-                builder: (context) => ProductsPage(user: user));
+                builder: (context) => const RegisterView());
+          case '/products':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+                builder: (context) => ProductsPage(
+                      user: args['user'] as User,
+                      categoryId: args['categoryId'] as int?,
+                    ));
           case '/product':
             final args = settings.arguments as Map<String, dynamic>;
             return MaterialPageRoute(
               builder: (context) => ProductDetailView(
                 product: args['product'] as Product?,
+                userRole: args['userRole'] as String,
+              ),
+            );
+          case '/categories':
+            final user = settings.arguments as User;
+            return MaterialPageRoute(
+                builder: (context) => CategoriesPage(user: user));
+          case '/category':
+            final args = settings.arguments as Map<String, dynamic>;
+            return MaterialPageRoute(
+              builder: (context) => CategoryDetailView(
+                category: args['category'] as Category?,
                 userRole: args['userRole'] as String,
               ),
             );

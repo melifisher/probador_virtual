@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../../controllers/auth_controller.dart';
 
 class RegisterView extends StatefulWidget {
+  const RegisterView({super.key});
+
   @override
   _RegisterViewState createState() => _RegisterViewState();
 }
@@ -21,7 +23,10 @@ class _RegisterViewState extends State<RegisterView> {
           _passwordController.text,
           _selectedRole,
         );
-        Navigator.of(context).pushReplacementNamed('/home', arguments: user);
+        Navigator.of(context).pushReplacementNamed('/products', arguments: {
+          'user': user,
+          'categoryId': null,
+        });
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Registration failed: $e')),
@@ -33,16 +38,16 @@ class _RegisterViewState extends State<RegisterView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Register')),
+      appBar: AppBar(title: const Text('Register')),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
             children: [
               TextFormField(
                 controller: _usernameController,
-                decoration: InputDecoration(labelText: 'Username'),
+                decoration: const InputDecoration(labelText: 'Username'),
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter a username';
@@ -52,7 +57,7 @@ class _RegisterViewState extends State<RegisterView> {
               ),
               TextFormField(
                 controller: _passwordController,
-                decoration: InputDecoration(labelText: 'Password'),
+                decoration: const InputDecoration(labelText: 'Password'),
                 obscureText: true,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -66,7 +71,7 @@ class _RegisterViewState extends State<RegisterView> {
               ),
               DropdownButtonFormField<String>(
                 value: _selectedRole,
-                decoration: InputDecoration(labelText: 'Role'),
+                decoration: const InputDecoration(labelText: 'Role'),
                 items: ['client', 'administrator'].map((String role) {
                   return DropdownMenuItem<String>(
                     value: role,

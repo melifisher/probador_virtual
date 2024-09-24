@@ -1,6 +1,5 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
 import '../config/environment/environment.dart';
 import '../models/user.dart';
 
@@ -12,7 +11,7 @@ class AuthService {
       final response = await http.post(
         Uri.parse('${Environment.apiUrl}/api/login'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'nombre': username, 'password': password}),
+        body: jsonEncode({'username': username, 'password': password}),
       );
 
       if (response.statusCode == 200) {
@@ -31,7 +30,7 @@ class AuthService {
         Uri.parse('${Environment.apiUrl}/api/register'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
-          'nombre': username,
+          'username': username,
           'password': password,
           'rol': role,
         }),

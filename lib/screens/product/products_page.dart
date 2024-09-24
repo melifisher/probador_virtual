@@ -2,10 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:probador_virtual/controllers/product_controller.dart';
 import '../../models/product.dart';
 import '../../models/user.dart';
+import '../../shared/shared.dart';
 
 class ProductsPage extends StatefulWidget {
   final User user;
-  const ProductsPage({super.key, required this.user});
+  final int? categoryId;
+  const ProductsPage({
+    super.key,
+    required this.user,
+    this.categoryId,
+  });
 
   @override
   _ProductsPageState createState() => _ProductsPageState();
@@ -14,19 +20,19 @@ class ProductsPage extends StatefulWidget {
 class _ProductsPageState extends State<ProductsPage> {
   final ProductController _controller = ProductController();
   late Future<List<Product>> _productsFuture;
-  String _searchQuery = '';
+  final String _searchQuery = '';
   String _sortBy = 'nombre';
   bool _sortAscending = true;
 
   @override
   void initState() {
     super.initState();
-    _productsFuture = _controller.getProducts();
+    _productsFuture = _controller.getProducts(widget.categoryId);
   }
 
   void _updateProductsList() {
     setState(() {
-      _productsFuture = _controller.getProducts();
+      _productsFuture = _controller.getProducts(widget.categoryId);
     });
   }
 
@@ -58,7 +64,7 @@ class _ProductsPageState extends State<ProductsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Product Catalog'),
+        title: const Text('Product Catalog'),
         actions: [
           IconButton(
             icon: const Icon(Icons.search),
@@ -81,11 +87,11 @@ class _ProductsPageState extends State<ProductsPage> {
               });
             },
             itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-              PopupMenuItem<String>(
+              const PopupMenuItem<String>(
                 value: 'nombre',
                 child: Text('Sort by Name'),
               ),
-              PopupMenuItem<String>(
+              const PopupMenuItem<String>(
                 value: 'precio',
                 child: Text('Sort by Price'),
               ),
@@ -93,63 +99,21 @@ class _ProductsPageState extends State<ProductsPage> {
           ),
         ],
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Welcome, ${widget.user.nombre}',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.shopping_cart),
-              title: Text('Cart'),
-              onTap: () {
-                // TODO: Implement cart functionality
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.history),
-              title: Text('Order History'),
-              onTap: () {
-                // TODO: Implement order history functionality
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.exit_to_app),
-              title: Text('Logout'),
-              onTap: () {
-                // TODO: Implement logout functionality
-                Navigator.of(context).pushReplacementNamed('/login');
-              },
-            ),
-          ],
-        ),
-      ),
+      drawer: DrawerWidget(user: widget.user),
       body: FutureBuilder<List<Product>>(
         future: _productsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(child: Text('No products available'));
+            return const Center(child: Text('No products available'));
           } else {
             var products = _filterAndSortProducts(snapshot.data!);
             return GridView.builder(
-              padding: EdgeInsets.all(8.0),
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+              padding: const EdgeInsets.all(8.0),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
                 childAspectRatio: 0.75,
                 crossAxisSpacing: 10,
@@ -164,33 +128,36 @@ class _ProductsPageState extends State<ProductsPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Container(
+                        child: SizedBox(
                           width: double.infinity,
                           child: Image.network(
-                            'https://via.placeholder.com/150',
+                            product.imagen == ''
+                                ? 'https://via.placeholder.com/150'
+                                : product.imagen,
                             fit: BoxFit.cover,
                           ),
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.all(8.0),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               product.nombre,
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             Text(
                               '\$${product.precio.toStringAsFixed(2)}',
-                              style: TextStyle(color: Colors.green),
+                              style: const TextStyle(color: Colors.green),
                             ),
-                            SizedBox(height: 4),
+                            const SizedBox(height: 4),
                             ElevatedButton(
-                              child: Text('View Details'),
+                              child: const Text('View Details'),
                               onPressed: () {
                                 Navigator.pushNamed(
                                   context,
@@ -215,7 +182,7 @@ class _ProductsPageState extends State<ProductsPage> {
       ),
       floatingActionButton: widget.user.rol == 'administrator'
           ? FloatingActionButton(
-              child: Icon(Icons.add),
+              child: const Icon(Icons.add),
               onPressed: () {
                 Navigator.pushNamed(
                   context,
@@ -238,7 +205,7 @@ class ProductSearch extends SearchDelegate<String> {
   List<Widget> buildActions(BuildContext context) {
     return [
       IconButton(
-        icon: Icon(Icons.clear),
+        icon: const Icon(Icons.clear),
         onPressed: () {
           query = '';
           updateParent();
@@ -250,7 +217,7 @@ class ProductSearch extends SearchDelegate<String> {
   @override
   Widget buildLeading(BuildContext context) {
     return IconButton(
-      icon: Icon(Icons.arrow_back),
+      icon: const Icon(Icons.arrow_back),
       onPressed: () {
         close(context, '');
       },

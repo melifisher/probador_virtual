@@ -4,18 +4,21 @@ import '../models/product.dart';
 import '../config/environment/environment.dart';
 
 class ProductController {
-  List<Product> _productos = [];
+  final List<Product> _productos = [];
 
   ProductController();
 
   List<Product> get productos => _productos;
 
-  Future<List<Product>> getProducts() async {
+  Future<List<Product>> getProducts(int? categoryId) async {
     try {
-      final response =
-          await http.get(Uri.parse('${Environment.apiUrl}/api/products'));
+      final response = categoryId == null
+          ? await http.get(Uri.parse('${Environment.apiUrl}/api/products'))
+          : await http.get(Uri.parse(
+              '${Environment.apiUrl}/api/products/category/$categoryId'));
       if (response.statusCode == 200) {
         final List<dynamic> productsJson = json.decode(response.body);
+        //print('Productos JSON: $productsJson');
         return productsJson.map((json) => Product.fromJson(json)).toList();
       } else {
         throw Exception('Failed to load products');
@@ -53,6 +56,7 @@ class ProductController {
   }
 
   Future<void> deleteProduct(int id) async {
+    print('id a eliminar: $id');
     final response =
         await http.delete(Uri.parse('${Environment.apiUrl}/api/products/$id'));
     if (response.statusCode != 204) {
