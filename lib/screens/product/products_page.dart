@@ -164,7 +164,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                   '/product',
                                   arguments: {
                                     'product': product,
-                                    'userRole': widget.user.rol,
+                                    'user': widget.user,
                                   },
                                 ).then((_) => _updateProductsList());
                               },
@@ -187,7 +187,7 @@ class _ProductsPageState extends State<ProductsPage> {
                 Navigator.pushNamed(
                   context,
                   '/product',
-                  arguments: {'userRole': widget.user.rol},
+                  arguments: {'user': widget.user},
                 ).then((_) => _updateProductsList());
               },
             )

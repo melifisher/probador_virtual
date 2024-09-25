@@ -23,6 +23,23 @@ class CategoryController {
     }
   }
 
+  Future<Category> getCategory(int id) async {
+    try {
+      final response =
+          await http.get(Uri.parse('${Environment.apiUrl}/api/categories/$id'));
+      if (response.statusCode == 200) {
+        final dynamic categoryJson = json.decode(response.body);
+        print('Category json: $categoryJson');
+        return Category.fromMap(categoryJson);
+      } else {
+        throw Exception('Failed to load category');
+      }
+    } catch (e) {
+      print('Error loading category: $e');
+      throw Exception(e);
+    }
+  }
+
   Future<Category> createCategory(Category category) async {
     final response = await http.post(
       Uri.parse('${Environment.apiUrl}/api/categories'),

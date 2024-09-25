@@ -50,7 +50,7 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (context) => ProductDetailView(
                 product: args['product'] as Product?,
-                userRole: args['userRole'] as String,
+                user: args['user'] as User,
               ),
             );
           case '/categories':

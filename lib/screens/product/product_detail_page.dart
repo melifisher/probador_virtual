@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../controllers/product_controller.dart';
+import '../../controllers/category_controller.dart';
 import '../../models/product.dart';
+import '../../models/user.dart';
+import '../../models/category.dart';
+import '../../shared/shared.dart';
 
 class ProductDetailView extends StatefulWidget {
   final Product? product;
-  final String userRole;
+  final User user;
 
-  ProductDetailView({this.product, required this.userRole});
+  const ProductDetailView({super.key, this.product, required this.user});
 
   @override
   _ProductDetailViewState createState() => _ProductDetailViewState();
@@ -14,21 +18,52 @@ class ProductDetailView extends StatefulWidget {
 
 class _ProductDetailViewState extends State<ProductDetailView> {
   final ProductController _controller = ProductController();
+  final CategoryController _categoryController = CategoryController();
   final _formKey = GlobalKey<FormState>();
+  late TextEditingController _imagenController;
   late TextEditingController _nameController;
   late TextEditingController _priceController;
-  late TextEditingController _descriptionController;
+  late TextEditingController _tallaController;
+  late TextEditingController _colorController;
   bool _isEditing = false;
-
+  List<Category> _categories = [];
+  Category? _selectedCategory;
   @override
   void initState() {
     super.initState();
+    _imagenController =
+        TextEditingController(text: widget.product?.imagen ?? '');
     _nameController = TextEditingController(text: widget.product?.nombre ?? '');
     _priceController =
         TextEditingController(text: widget.product?.precio.toString() ?? '');
-    _descriptionController =
-        TextEditingController(text: widget.product?.descripcion ?? '');
+    _tallaController =
+        TextEditingController(text: widget.product?.talla.join(" "));
+    _colorController =
+        TextEditingController(text: widget.product?.color.join(" "));
     _isEditing = widget.product == null;
+    _loadCategoriesAndProduct();
+  }
+
+  Future<void> _loadCategoriesAndProduct() async {
+    await _loadCategories();
+    await _loadSelectedCategory();
+    setState(() {});
+  }
+
+  Future<void> _loadCategories() async {
+    _categories = await _categoryController.getCategories();
+    setState(() {});
+  }
+
+  Future<void> _loadSelectedCategory() async {
+    if (widget.product != null) {
+      _selectedCategory = _categories.firstWhere(
+        (category) => category.id == widget.product!.categoriaId,
+        orElse: () => _categories.first,
+      );
+    } else {
+      _selectedCategory = _categories.isNotEmpty ? _categories.first : null;
+    }
   }
 
   @override
@@ -37,7 +72,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
       appBar: AppBar(
         title: Text(widget.product == null ? 'Add Product' : 'Product Details'),
         actions: [
-          if (widget.userRole == 'administrator' && widget.product != null)
+          if (widget.user.rol == 'administrator' && widget.product != null)
             IconButton(
               icon: Icon(_isEditing ? Icons.save : Icons.edit),
               onPressed: () {
@@ -52,15 +87,34 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             ),
         ],
       ),
+      drawer: DrawerWidget(user: widget.user),
       body: Padding(
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: _isEditing
+                    ? TextFormField(
+                        controller: _imagenController,
+                        decoration:
+                            const InputDecoration(labelText: 'Image URL'),
+                      )
+                    : Image.network(
+                        widget.product!.imagen == ''
+                            ? 'https://via.placeholder.com/200'
+                            : widget.product!.imagen,
+                        width: 200,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+              ),
+              const SizedBox(height: 16.0),
               TextFormField(
                 controller: _nameController,
-                decoration: InputDecoration(labelText: 'Name'),
+                decoration: const InputDecoration(labelText: 'Nombre'),
                 enabled: _isEditing,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -71,7 +125,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
               ),
               TextFormField(
                 controller: _priceController,
-                decoration: InputDecoration(labelText: 'Price'),
+                decoration: const InputDecoration(labelText: 'Precio'),
                 enabled: _isEditing,
                 keyboardType: TextInputType.number,
                 validator: (value) {
@@ -85,34 +139,83 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 },
               ),
               TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(labelText: 'Description'),
+                controller: _tallaController,
+                decoration: const InputDecoration(labelText: 'Tallas'),
                 enabled: _isEditing,
-                maxLines: 3,
+                //maxLines: 2,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the sizes';
+                  }
+                  return null;
+                },
               ),
-              if (widget.userRole == 'administrator' &&
+              TextFormField(
+                controller: _colorController,
+                decoration: const InputDecoration(labelText: 'Colors'),
+                enabled: _isEditing,
+                validator: (value) {
+                  if (value == null || value.isEmpty) {
+                    return 'Please enter the colors';
+                  }
+                  return null;
+                },
+              ),
+              if (_isEditing)
+                DropdownButtonFormField<Category>(
+                  value: _selectedCategory,
+                  items: _categories
+                      .map(
+                        (category) => DropdownMenuItem<Category>(
+                          value: category,
+                          child: Text(category.nombre),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value;
+                    });
+                  },
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                  ),
+                ),
+              if (!_isEditing)
+                TextFormField(
+                  controller:
+                      TextEditingController(text: _selectedCategory?.nombre),
+                  decoration: const InputDecoration(
+                    labelText: 'Category',
+                  ),
+                  enabled: false,
+                ),
+              if (widget.user.rol == 'administrator' &&
                   widget.product != null &&
                   !_isEditing) ...[
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    try {
-                      await _controller.deleteProduct(widget.product!.id);
-                      Navigator.pop(context);
-                    } catch (e) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Error: $e')),
-                      );
-                    }
-                  },
-                  child: Text('Delete'),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                const SizedBox(height: 20),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      try {
+                        await _controller.deleteProduct(widget.product!.id);
+                        Navigator.pop(context);
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Error: $e')),
+                        );
+                      }
+                    },
+                    style:
+                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                    child: const Text('Delete'),
+                  ),
                 ),
               ],
-              if (widget.userRole == 'administrator' &&
+              if (widget.user.rol == 'administrator' &&
                   widget.product == null &&
                   _isEditing) ...[
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 ElevatedButton(
                   onPressed: () async {
                     if (_formKey.currentState!.validate()) {
@@ -120,19 +223,21 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                         id: widget.product?.id ?? 0,
                         nombre: _nameController.text,
                         precio: double.parse(_priceController.text),
-                        descripcion: _descriptionController.text,
-                        talla: widget.product?.talla ?? '',
-                        imagen: widget.product?.imagen ?? '',
+                        talla: _tallaController.text.split(' '),
+                        color: _colorController.text.split(' '),
+                        imagen: _imagenController.text,
                         disponible: widget.product?.disponible ?? true,
                         modeloUrl: widget.product?.modeloUrl ?? '',
+                        categoriaId: _selectedCategory?.id ?? 1,
                       );
                       try {
                         if (widget.product == null) {
                           await _controller.createProduct(product);
+                          Navigator.pop(context);
                         } else {
                           await _controller.updateProduct(product);
+                          _isEditing = false;
                         }
-                        Navigator.pop(context);
                       } catch (e) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Error: $e')),
@@ -156,11 +261,12 @@ class _ProductDetailViewState extends State<ProductDetailView> {
         id: widget.product?.id ?? 0,
         nombre: _nameController.text,
         precio: double.parse(_priceController.text),
-        descripcion: _descriptionController.text,
-        talla: widget.product?.talla ?? '',
-        imagen: widget.product?.imagen ?? '',
+        talla: _tallaController.text.split(' '),
+        color: _colorController.text.split(' '),
+        imagen: _imagenController.text,
         disponible: widget.product?.disponible ?? true,
         modeloUrl: widget.product?.modeloUrl ?? '',
+        categoriaId: _selectedCategory?.id ?? 1,
       );
       try {
         if (widget.product == null) {
@@ -181,7 +287,8 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   void dispose() {
     _nameController.dispose();
     _priceController.dispose();
-    _descriptionController.dispose();
+    _tallaController.dispose();
+    _colorController.dispose();
     super.dispose();
   }
 }
