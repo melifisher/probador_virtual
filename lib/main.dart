@@ -11,6 +11,7 @@ import 'models/category.dart';
 import 'screens/home_page.dart';
 import 'screens/category/categories_page.dart';
 import 'screens/category/category_detail_page.dart';
+import 'screens/client/product_rental_page.dart'; // Importa la vista de alquiler
 
 void main() async {
   await Environment.initEnvironment();

@@ -40,19 +40,15 @@ class Product {
         'modelo_url': modeloUrl,
         'categoria_id': categoriaId
       };
-
-  factory Product.fromJson(Map<String, dynamic> json) => Product(
-      id: int.parse(json['id']),
-      nombre: json['nombre'],
-      color:
-          (json['color'] as List?)?.map((item) => item.toString()).toList() ??
-              [],
-      talla:
-          (json['talla'] as List?)?.map((item) => item.toString()).toList() ??
-              [],
-      precio: (json['precio'] as num).toDouble(),
-      imagen: json['imagen'] ?? '',
-      disponible: json['disponible'] ?? false,
-      modeloUrl: json['modelo_url'] ?? '',
-      categoriaId: int.parse(json['categoria_id']));
+factory Product.fromJson(Map<String, dynamic> json) => Product(
+  id: json['id'] is String ? int.parse(json['id']) : json['id'],  // Convertir string a int si es necesario
+  nombre: json['nombre'],
+  color: (json['color'] as List?)?.map((item) => item.toString()).toList() ?? [],
+  talla: (json['talla'] as List?)?.map((item) => item.toString()).toList() ?? [],
+  precio: json['precio'] is String ? double.parse(json['precio']) : (json['precio'] as num).toDouble(),
+  imagen: json['imagen'] ?? '',
+  disponible: json['disponible'] ?? false,
+  modeloUrl: json['modelo_url'] ?? '',
+  categoriaId: json['categoria_id'] is String ? int.parse(json['categoria_id']) : json['categoria_id'],  // Convertir string a int si es necesario
+);
 }

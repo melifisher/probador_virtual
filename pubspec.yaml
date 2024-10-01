@@ -35,6 +35,7 @@ dependencies:
   #arcore_flutter_plugin: ^0.1.0
   postgres: ^2.6.4
   shared_preferences: 
+  table_calendar: ^3.0.3
   
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

@@ -33,7 +33,10 @@ class ProductController {
     final response = await http.post(
       Uri.parse('${Environment.apiUrl}/api/products'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(product.toJson()),
+      body: jsonEncode({
+      ...product.toJson(),
+      'precio': double.tryParse(product.precio.toString()) ?? 0.0,  // Asegurar que precio se mande como double
+    }),
     );
     if (response.statusCode == 201) {
       return Product.fromJson(jsonDecode(response.body));

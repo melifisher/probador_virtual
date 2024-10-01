@@ -5,6 +5,7 @@ import '../../models/product.dart';
 import '../../models/user.dart';
 import '../../models/category.dart';
 import '../../shared/shared.dart';
+import '../client/product_rental_page.dart'; 
 
 class ProductDetailView extends StatefulWidget {
   final Product? product;
@@ -68,6 +69,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
 
   @override
   Widget build(BuildContext context) {
+        print('Rol del usuario: ${widget.user.rol}'); 
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.product == null ? 'Add Product' : 'Product Details'),
@@ -161,6 +163,26 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   return null;
                 },
               ),
+              // botón de "Alquilar"
+              const Spacer(),
+              if (widget.user.rol == 'client') // Mostrar solo si el rol es cliente
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ProductRentalPage(
+                            product: widget.product!,
+                            user: widget.user,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Alquilar'),
+                  ),
+                ),
+                
               if (_isEditing)
                 DropdownButtonFormField<Category>(
                   value: _selectedCategory,
