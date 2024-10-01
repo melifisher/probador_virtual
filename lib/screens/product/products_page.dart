@@ -130,12 +130,17 @@ class _ProductsPageState extends State<ProductsPage> {
                       Expanded(
                         child: SizedBox(
                           width: double.infinity,
-                          child: Image.network(
-                            product.imagen == ''
-                                ? 'https://via.placeholder.com/150'
-                                : product.imagen,
-                            fit: BoxFit.cover,
-                          ),
+                          child: product.imagen == ''
+                              ? Image.asset(
+                                  'assets/placeholder200.png',
+                                  fit: BoxFit.cover,
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                )
+                              : Image.network(
+                                  product.imagen,
+                                  fit: BoxFit.cover,
+                                ),
                         ),
                       ),
                       Padding(
