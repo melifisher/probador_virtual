@@ -7,12 +7,12 @@ import 'screens/auth/login_page.dart';
 import 'screens/auth/register_page.dart';
 import 'screens/product/products_page.dart';
 import 'screens/product/product_detail_page.dart';
-import 'models/user.dart';
 import 'models/product.dart';
 import 'models/category.dart';
 import 'screens/home_page.dart';
 import 'screens/category/categories_page.dart';
 import 'screens/category/category_detail_page.dart';
+import 'screens/client/profile_page.dart';
 
 void main() async {
   await Environment.initEnvironment();
@@ -67,6 +67,8 @@ class MyApp extends StatelessWidget {
                 category: category,
               ),
             );
+          case '/profile':
+            return MaterialPageRoute(builder: (context) => ProfilePage());
           default:
             return MaterialPageRoute(
               builder: (context) => Scaffold(
