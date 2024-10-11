@@ -1,15 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:probador_virtual/controllers/product_controller.dart';
 import '../../models/product.dart';
-import '../../models/user.dart';
+import '../../providers/auth_provider.dart';
 import '../../shared/shared.dart';
 
 class ProductsPage extends StatefulWidget {
-  final User user;
   final int? categoryId;
   const ProductsPage({
     super.key,
-    required this.user,
     this.categoryId,
   });
 
@@ -62,6 +61,9 @@ class _ProductsPageState extends State<ProductsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Product Catalog'),
@@ -99,7 +101,7 @@ class _ProductsPageState extends State<ProductsPage> {
           ),
         ],
       ),
-      drawer: DrawerWidget(user: widget.user),
+      drawer: const DrawerWidget(),
       body: FutureBuilder<List<Product>>(
         future: _productsFuture,
         builder: (context, snapshot) {
@@ -111,88 +113,97 @@ class _ProductsPageState extends State<ProductsPage> {
             return const Center(child: Text('No products available'));
           } else {
             var products = _filterAndSortProducts(snapshot.data!);
-            return GridView.builder(
-              padding: const EdgeInsets.all(8.0),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                childAspectRatio: 0.75,
-                crossAxisSpacing: 10,
-                mainAxisSpacing: 10,
-              ),
-              itemCount: products.length,
-              itemBuilder: (context, index) {
-                Product product = products[index];
-                return Card(
-                  elevation: 2,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          width: double.infinity,
-                          child: product.imagen == ''
-                              ? Image.asset(
-                                  'assets/placeholder200.png',
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                )
-                              : Image.network(
-                                  product.imagen,
-                                  fit: BoxFit.cover,
-                                ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product.nombre,
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              '\$${product.precio.toStringAsFixed(2)}',
-                              style: const TextStyle(color: Colors.green),
-                            ),
-                            const SizedBox(height: 4),
-                            ElevatedButton(
-                              child: const Text('View Details'),
-                              onPressed: () {
-                                Navigator.pushNamed(
-                                  context,
-                                  '/product',
-                                  arguments: {
-                                    'product': product,
-                                    'user': widget.user,
-                                  },
-                                ).then((_) => _updateProductsList());
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = constraints.maxWidth ~/ 200;
+                return GridView.builder(
+                  padding: const EdgeInsets.all(8.0),
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: crossAxisCount.clamp(2, 6),
+                    childAspectRatio: 0.75,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
                   ),
+                  itemCount: products.length,
+                  itemBuilder: (context, index) {
+                    Product product = products[index];
+                    return Card(
+                      elevation: 2,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: product.imagen == ''
+                                  ? Image.asset(
+                                      'assets/placeholder200.png',
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    )
+                                  : Image.network(
+                                      product.imagen,
+                                      fit: BoxFit.cover,
+                                    ),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.all(12.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  product.nombre,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '\$${product.precio.toStringAsFixed(2)}',
+                                  style: const TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    child: const Text('View Details'),
+                                    onPressed: () {
+                                      Navigator.pushNamed(
+                                        context,
+                                        '/product',
+                                        arguments: product,
+                                      ).then((_) => _updateProductsList());
+                                    },
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
                 );
               },
             );
           }
         },
       ),
-      floatingActionButton: widget.user.rol == 'administrator'
+      floatingActionButton: user?.rol == 'administrator'
           ? FloatingActionButton(
               child: const Icon(Icons.add),
               onPressed: () {
                 Navigator.pushNamed(
                   context,
                   '/product',
-                  arguments: {'user': widget.user},
                 ).then((_) => _updateProductsList());
               },
             )
@@ -205,7 +216,6 @@ class ProductSearch extends SearchDelegate<String> {
   final Function updateParent;
 
   ProductSearch({required this.updateParent});
-
   @override
   List<Widget> buildActions(BuildContext context) {
     return [

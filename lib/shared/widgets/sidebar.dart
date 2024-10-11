@@ -1,25 +1,26 @@
 import 'package:flutter/material.dart';
-import '../../models/user.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../screens/client/profile_page.dart';
 
 class DrawerWidget extends StatelessWidget {
-  final User user;
-
-  const DrawerWidget({super.key, required this.user});
+  const DrawerWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+
     return Drawer(
       child: ListView(
         padding: EdgeInsets.zero,
         children: <Widget>[
           GestureDetector(
             onTap: () {
-              // Navega a la página de perfil
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => ProfilePage(user: user),
+                  builder: (context) => ProfilePage(user: user!),
                 ),
               );
             },
@@ -31,25 +32,13 @@ class DrawerWidget extends StatelessWidget {
                 children: [
                   const CircleAvatar(
                     radius: 30,
-                    backgroundImage:
-                        /* user.photoUrl.isNotEmpty? NetworkImage(user.photoUrl)
-                        : const */
-                        AssetImage('assets/user-icon.jpg')
-                            as ImageProvider<Object>,
+                    backgroundImage: AssetImage('assets/user-icon.jpg')
+                        as ImageProvider<Object>,
                     child: null,
-                    /* child: user.photoUrl.isEmpty
-                        ? Text(
-                            user.username.substring(0, 1).toUpperCase(),
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                            ),
-                          )
-                        : null, */
                   ),
                   const SizedBox(width: 16),
                   Text(
-                    user.username,
+                    user?.username ?? 'Guest',
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -69,7 +58,7 @@ class DrawerWidget extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.history),
-            title: user.rol == "client"
+            title: user?.rol == "client"
                 ? const Text('Order History')
                 : const Text('Alquileres'),
             onTap: () {
@@ -84,7 +73,6 @@ class DrawerWidget extends StatelessWidget {
               Navigator.pushNamed(
                 context,
                 '/categories',
-                arguments: user,
               );
             },
           ),
@@ -92,7 +80,7 @@ class DrawerWidget extends StatelessWidget {
             leading: const Icon(Icons.exit_to_app),
             title: const Text('Logout'),
             onTap: () {
-              // TODO: Implement logout functionality
+              authProvider.logout();
               Navigator.of(context).pushReplacementNamed('/login');
             },
           ),

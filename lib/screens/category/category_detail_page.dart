@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../controllers/category_controller.dart';
 import '../../models/category.dart';
+import '../../providers/auth_provider.dart';
 
 class CategoryDetailView extends StatefulWidget {
   final Category? category;
-  final String userRole;
 
-  const CategoryDetailView({super.key, this.category, required this.userRole});
+  const CategoryDetailView({super.key, this.category});
 
   @override
   _CategoryDetailViewState createState() => _CategoryDetailViewState();
@@ -16,7 +17,6 @@ class _CategoryDetailViewState extends State<CategoryDetailView> {
   final CategoryController _controller = CategoryController();
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  late TextEditingController _priceController;
   bool _isEditing = false;
 
   @override
@@ -29,12 +29,15 @@ class _CategoryDetailViewState extends State<CategoryDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final userRole = authProvider.user?.rol;
+
     return Scaffold(
       appBar: AppBar(
         title:
             Text(widget.category == null ? 'Add Category' : 'Category Details'),
         actions: [
-          if (widget.userRole == 'administrator' && widget.category != null)
+          if (userRole == 'administrator' && widget.category != null)
             IconButton(
               icon: Icon(_isEditing ? Icons.save : Icons.edit),
               onPressed: () {
@@ -66,7 +69,7 @@ class _CategoryDetailViewState extends State<CategoryDetailView> {
                   return null;
                 },
               ),
-              if (widget.userRole == 'administrator' &&
+              if (userRole == 'administrator' &&
                   widget.category != null &&
                   !_isEditing) ...[
                 const SizedBox(height: 20),
@@ -85,31 +88,12 @@ class _CategoryDetailViewState extends State<CategoryDetailView> {
                   child: const Text('Delete'),
                 ),
               ],
-              if (widget.userRole == 'administrator' &&
+              if (userRole == 'administrator' &&
                   widget.category == null &&
                   _isEditing) ...[
                 const SizedBox(height: 20),
                 ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      Category category = Category(
-                        id: widget.category?.id ?? 0,
-                        nombre: _nameController.text,
-                      );
-                      try {
-                        if (widget.category == null) {
-                          await _controller.createCategory(category);
-                        } else {
-                          await _controller.updateCategory(category);
-                        }
-                        Navigator.pop(context);
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
-                        );
-                      }
-                    }
-                  },
+                  onPressed: _saveCategory,
                   child: const Text('Add'),
                 ),
               ],
@@ -144,7 +128,6 @@ class _CategoryDetailViewState extends State<CategoryDetailView> {
   @override
   void dispose() {
     _nameController.dispose();
-    _priceController.dispose();
     super.dispose();
   }
 }

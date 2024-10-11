@@ -27,8 +27,8 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
 
   // Fechas reservadas (esto vendría del backend)
   List<DateTime> reservedDates = [
-    DateTime.now().add(Duration(days: 2)),
-    DateTime.now().add(Duration(days: 5)),
+    DateTime.now().add(const Duration(days: 2)),
+    DateTime.now().add(const Duration(days: 5)),
   ];
 
   bool _isReserved(DateTime day) {
@@ -67,7 +67,7 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
               ),
               const SizedBox(height: 20),
               // Calendario para seleccionar las fechas de alquiler
-              Text(
+              const Text(
                 'Seleccione las fechas de alquiler',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -77,11 +77,11 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
                 children: [
                   ElevatedButton(
                     onPressed: () => _selectDate(context, true),
-                    child: Text('Seleccionar Inicio'),
+                    child: const Text('Seleccionar Inicio'),
                   ),
                   ElevatedButton(
                     onPressed: () => _selectDate(context, false),
-                    child: Text('Seleccionar Fin'),
+                    child: const Text('Seleccionar Fin'),
                   ),
                 ],
               ),
@@ -89,7 +89,7 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
               TableCalendar(
                 focusedDay: DateTime.now(),
                 firstDay: DateTime.now(),
-                lastDay: DateTime.now().add(Duration(days: 365)),
+                lastDay: DateTime.now().add(const Duration(days: 365)),
                 calendarFormat: _calendarFormat,
                 onFormatChanged: (format) {
                   setState(() {
@@ -99,20 +99,21 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
                 onDaySelected: (selectedDay, focusedDay) {
                   if (_isReserved(selectedDay)) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Esta fecha está reservada.')),
+                      const SnackBar(
+                          content: Text('Esta fecha está reservada.')),
                     );
                   }
                 },
                 selectedDayPredicate: (day) {
                   if (_startDate != null && _endDate != null) {
-                    return day
-                            .isAfter(_startDate!.subtract(Duration(days: 1))) &&
-                        day.isBefore(_endDate!.add(Duration(days: 1)));
+                    return day.isAfter(
+                            _startDate!.subtract(const Duration(days: 1))) &&
+                        day.isBefore(_endDate!.add(const Duration(days: 1)));
                   }
                   return _startDate != null && day.isSameDate(_startDate!) ||
                       _endDate != null && day.isSameDate(_endDate!);
                 },
-                calendarStyle: CalendarStyle(
+                calendarStyle: const CalendarStyle(
                   defaultTextStyle: TextStyle(color: Colors.black),
                   todayTextStyle: TextStyle(color: Colors.white),
                   todayDecoration: BoxDecoration(
@@ -131,12 +132,12 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
               // Mostrar fechas seleccionadas
               Text(
                 'Fecha de inicio: ${_startDate != null ? _dateFormat.format(_startDate!) : 'No seleccionada'}',
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 5),
               Text(
                 'Fecha de fin: ${_endDate != null ? _dateFormat.format(_endDate!) : 'No seleccionada'}',
-                style: TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: 16),
               ),
               const SizedBox(height: 20),
               // Mostrar el precio total
@@ -174,7 +175,7 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
           ? (_startDate ?? DateTime.now())
           : (_endDate ?? DateTime.now()),
       firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(Duration(days: 365)),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
       selectableDayPredicate: (DateTime day) {
         return !_isReserved(day);
       },
@@ -191,7 +192,7 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
             _endDate = picked;
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
+              const SnackBar(
                   content: Text(
                       'La fecha de fin debe ser posterior a la fecha de inicio.')),
             );

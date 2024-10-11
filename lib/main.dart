@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/auth_provider.dart';
 import 'config/environment/environment.dart';
 import 'config/theme/app_theme.dart';
 import 'screens/auth/login_page.dart';
@@ -11,13 +13,17 @@ import 'models/category.dart';
 import 'screens/home_page.dart';
 import 'screens/category/categories_page.dart';
 import 'screens/category/category_detail_page.dart';
-import 'screens/client/product_rental_page.dart'; // Importa la vista de alquiler
 
 void main() async {
   await Environment.initEnvironment();
   WidgetsFlutterBinding.ensureInitialized();
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthProvider(),
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -40,30 +46,25 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
                 builder: (context) => const RegisterView());
           case '/products':
-            final args = settings.arguments as Map<String, dynamic>;
+            final categoryId = settings.arguments as int?;
             return MaterialPageRoute(
                 builder: (context) => ProductsPage(
-                      user: args['user'] as User,
-                      categoryId: args['categoryId'] as int?,
+                      categoryId: categoryId,
                     ));
           case '/product':
-            final args = settings.arguments as Map<String, dynamic>;
+            final product = settings.arguments as Product?;
             return MaterialPageRoute(
               builder: (context) => ProductDetailView(
-                product: args['product'] as Product?,
-                user: args['user'] as User,
+                product: product,
               ),
             );
           case '/categories':
-            final user = settings.arguments as User;
-            return MaterialPageRoute(
-                builder: (context) => CategoriesPage(user: user));
+            return MaterialPageRoute(builder: (context) => CategoriesPage());
           case '/category':
-            final args = settings.arguments as Map<String, dynamic>;
+            final category = settings.arguments as Category?;
             return MaterialPageRoute(
               builder: (context) => CategoryDetailView(
-                category: args['category'] as Category?,
-                userRole: args['userRole'] as String,
+                category: category,
               ),
             );
           default:

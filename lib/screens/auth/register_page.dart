@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../controllers/auth_controller.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 class RegisterView extends StatefulWidget {
   const RegisterView({super.key});
@@ -9,7 +10,6 @@ class RegisterView extends StatefulWidget {
 }
 
 class _RegisterViewState extends State<RegisterView> {
-  final AuthController _authController = AuthController();
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -18,15 +18,19 @@ class _RegisterViewState extends State<RegisterView> {
   void _register() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final user = await _authController.register(
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final success = await authProvider.register(
           _usernameController.text,
           _passwordController.text,
           _selectedRole,
         );
-        Navigator.of(context).pushReplacementNamed('/products', arguments: {
-          'user': user,
-          'categoryId': null,
-        });
+        if (success) {
+          Navigator.of(context).pushReplacementNamed('/products');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Registration failed')),
+          );
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Registration failed: $e')),
