@@ -105,7 +105,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
           ),
         ],
       ),
-      drawer: DrawerWidget(),
+      drawer: const DrawerWidget(),
       body: FutureBuilder<List<Category>>(
         future: _categoriesFuture,
         builder: (context, snapshot) {
@@ -218,7 +218,6 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 Navigator.pushNamed(
                   context,
                   '/category',
-                  arguments: {'userRole': user?.rol},
                 ).then((_) => _updateCategoriesList());
               },
             )
