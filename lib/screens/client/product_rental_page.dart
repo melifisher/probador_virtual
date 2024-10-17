@@ -3,6 +3,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'package:intl/intl.dart'; // Para el formato de fechas
 import '../../models/product.dart';
 import '../../models/user.dart';
+import 'package:probador_virtual/screens/rent/cart_page.dart';
 
 class ProductRentalPage extends StatefulWidget {
   final Product product;
@@ -30,7 +31,9 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
     DateTime.now().add(const Duration(days: 2)),
     DateTime.now().add(const Duration(days: 5)),
   ];
-
+  List<Product> _cartItems = []; // Lista de productos en el carrito
+  String? _selectedTalla;
+  String? _selectedColor;
   bool _isReserved(DateTime day) {
     return reservedDates.contains(day);
   }
@@ -66,26 +69,85 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Dropdowns para seleccionar talla
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Seleccione la talla',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        DropdownButton<String>(
+                          value: _selectedTalla,
+                          hint: const Text('Seleccione una talla'),
+                          items: widget.product.talla
+                              .join(',')
+                              .split(',')
+                              .map((String talla) {
+                            return DropdownMenuItem<String>(
+                              value: talla.trim(),
+                              child: Text(talla.trim()),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedTalla = newValue;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(
+                      width:
+                          16), // Espacio entre los dos dropdowns y selecciona el color
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Seleccione el color',
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                        DropdownButton<String>(
+                          value: _selectedColor,
+                          hint: const Text('Seleccione un color'),
+                          items: widget.product.color
+                              .join(',')
+                              .split(',')
+                              .map((String color) {
+                            return DropdownMenuItem<String>(
+                              value: color.trim(),
+                              child: Text(color.trim()),
+                            );
+                          }).toList(),
+                          onChanged: (String? newValue) {
+                            setState(() {
+                              _selectedColor = newValue;
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
               // Calendario para seleccionar las fechas de alquiler
               const Text(
                 'Seleccione las fechas de alquiler',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 10),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  ElevatedButton(
-                    onPressed: () => _selectDate(context, true),
-                    child: const Text('Seleccionar Inicio'),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => _selectDate(context, false),
-                    child: const Text('Seleccionar Fin'),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 10),
+
               TableCalendar(
                 focusedDay: DateTime.now(),
                 firstDay: DateTime.now(),
@@ -102,7 +164,33 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
                       const SnackBar(
                           content: Text('Esta fecha está reservada.')),
                     );
+                    return;
                   }
+                  setState(() {
+                    // Lógica para seleccionar y cambiar fechas dinámicamente
+                    if (_startDate == null || _endDate != null) {
+                      // Si no hay fecha de inicio o ambas fechas están seleccionadas
+                      _startDate = selectedDay;
+                      _endDate = null; // Resetear la fecha de fin
+                    } else if (selectedDay.isAfter(_startDate!)) {
+                      // Si la nueva fecha es después de la fecha de inicio, se establece como fecha de fin
+                      _endDate = selectedDay;
+                    } else {
+                      // Si se intenta seleccionar una fecha anterior a la fecha de inicio
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                              'La fecha seleccionada debe ser posterior a la fecha de inicio.'),
+                        ),
+                      );
+                      // Si se intenta seleccionar una fecha anterior a la fecha de inicio
+                      _startDate = selectedDay;
+                      _endDate =
+                          null; // Resetear la fecha de fin para permitir una nueva selección
+                    }
+
+                    _calculatePrice();
+                  });
                 },
                 selectedDayPredicate: (day) {
                   if (_startDate != null && _endDate != null) {
@@ -143,64 +231,66 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
               // Mostrar el precio total
               if (_startDate != null && _endDate != null)
                 Text(
-                  'Precio total: \$$_totalPrice',
+                  'Precio total: \$${_totalPrice.toStringAsFixed(2)}',
                   style: const TextStyle(
                       fontSize: 20, fontWeight: FontWeight.bold),
                 ),
               const SizedBox(height: 20),
               // Botón para añadir al carrito
-              ElevatedButton(
-                onPressed: _startDate != null && _endDate != null
-                    ? () {
-                        // Lógica para añadir el producto al carrito
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text('Producto añadido al carrito')),
-                        );
-                      }
-                    : null,
-                child: const Text('Añadir al carrito'),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  ElevatedButton(
+                    onPressed: _startDate != null &&
+                            _endDate != null &&
+                            _selectedTalla != null &&
+                            _selectedColor != null
+                        ? () {
+                            setState(() {
+                              _cartItems
+                                  .add(widget.product); //  producto al carrito
+                            });
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                  content: Text('Producto añadido al carrito')),
+                            );
+                          }
+                        : null,
+                    child: const Text('Añadir al carrito'),
+                  ),
+                  ElevatedButton(
+                    onPressed: _cartItems.isNotEmpty
+                        ? () {
+                            int rentalDays =
+                                _endDate!.difference(_startDate!).inDays + 1;
+                            double totalPrice = _cartItems.fold(
+                                0,
+                                (total, item) =>
+                                    total + (item.precio * rentalDays));
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CartPage(
+                                  cartItems: _cartItems,
+                                  rentalDays:
+                                      rentalDays, // Pasar la duración del alquiler
+                                  totalPrice:
+                                      totalPrice, // Pasar el precio total calculado
+                                ),
+                              ),
+                            );
+                          }
+                        : null,
+                    child: const Text('Ver Carrito'),
+                  ),
+                ],
               ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  Future<void> _selectDate(BuildContext context, bool isStartDate) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: isStartDate
-          ? (_startDate ?? DateTime.now())
-          : (_endDate ?? DateTime.now()),
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
-      selectableDayPredicate: (DateTime day) {
-        return !_isReserved(day);
-      },
-    );
-    if (picked != null) {
-      setState(() {
-        if (isStartDate) {
-          _startDate = picked;
-          if (_endDate != null && _endDate!.isBefore(_startDate!)) {
-            _endDate = null;
-          }
-        } else {
-          if (_startDate != null && picked.isAfter(_startDate!)) {
-            _endDate = picked;
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                  content: Text(
-                      'La fecha de fin debe ser posterior a la fecha de inicio.')),
-            );
-          }
-        }
-        _calculatePrice();
-      });
-    }
   }
 }
 
