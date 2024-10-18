@@ -55,12 +55,14 @@ class DrawerWidget extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.history),
-            title: user?.rol == "client"
-                ? const Text('Order History')
-                : const Text('Alquileres'),
+            title: user?.rol == 'administrator'
+                ? const Text('Alquileres')
+                : const Text('Mis Alquileres'),
             onTap: () {
-              // TODO: Implement order history functionality
-              Navigator.pop(context);
+              Navigator.pushNamed(
+                context,
+                '/rentals',
+              );
             },
           ),
           ListTile(
