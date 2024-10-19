@@ -4,6 +4,8 @@ import 'package:intl/intl.dart'; // Para el formato de fechas
 import '../../models/product.dart';
 import '../../models/user.dart';
 import 'package:probador_virtual/screens/rent/cart_page.dart';
+import 'package:probador_virtual/controllers/cart_controller.dart';
+import 'package:probador_virtual/models/cart.dart';
 
 class ProductRentalPage extends StatefulWidget {
   final Product product;
@@ -23,15 +25,18 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
   DateTime? _startDate;
   DateTime? _endDate;
   double _totalPrice = 0;
+  int _selectedCantidad = 1;
   final DateFormat _dateFormat = DateFormat('dd/MM/yyyy');
   CalendarFormat _calendarFormat = CalendarFormat.month;
+  final CartController _cartController =
+      CartController(); // Instancia del controlador
 
   // Fechas reservadas (esto vendría del backend)
   List<DateTime> reservedDates = [
     DateTime.now().add(const Duration(days: 2)),
     DateTime.now().add(const Duration(days: 5)),
   ];
-  List<Product> _cartItems = []; // Lista de productos en el carrito
+  List<Cart> _cartItems = [];
   String? _selectedTalla;
   String? _selectedColor;
   bool _isReserved(DateTime day) {
@@ -42,7 +47,7 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
     if (_startDate != null && _endDate != null) {
       int rentalDays = _endDate!.difference(_startDate!).inDays + 1;
       setState(() {
-        _totalPrice = rentalDays * widget.product.precio;
+        _totalPrice = rentalDays * widget.product.precio * _selectedCantidad;
       });
     }
   }
@@ -141,6 +146,30 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
               ),
 
               const SizedBox(height: 20),
+              // Dropdown para seleccionar cantidad
+              const Text(
+                'Seleccione la cantidad',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              DropdownButton<int>(
+                value: _selectedCantidad,
+                hint: const Text('Cantidad'),
+                items: List.generate(10,
+                        (index) => index + 1) // Se puede modificar el limite
+                    .map((int cantidad) {
+                  return DropdownMenuItem<int>(
+                    value: cantidad,
+                    child: Text(cantidad.toString()),
+                  );
+                }).toList(),
+                onChanged: (int? newValue) {
+                  setState(() {
+                    _selectedCantidad = newValue!;
+                    _calculatePrice(); // Recalcular el precio cuando cambie la cantidad
+                  });
+                },
+              ),
+
               // Calendario para seleccionar las fechas de alquiler
               const Text(
                 'Seleccione las fechas de alquiler',
@@ -246,11 +275,31 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
                             _endDate != null &&
                             _selectedTalla != null &&
                             _selectedColor != null
-                        ? () {
+                        ? () async {
+                            int rentalDays =
+                                _endDate!.difference(_startDate!).inDays + 1;
+                            // Crear el Cart
+                            Cart cart = Cart(
+                              id: 0, // Se generará en el backend
+                              userId: widget.user.id,
+                              productId: widget.product.id,
+                              cantidad: _selectedCantidad,
+                              talla: _selectedTalla!,
+                              color: _selectedColor!,
+                              rentalDays: rentalDays,
+                              nombre: widget.product.nombre,
+                              precio: widget.product.precio,
+                              imagen: widget.product.imagen,
+                            );
+                            // Añadir el producto a la lista de carrito
                             setState(() {
-                              _cartItems
-                                  .add(widget.product); //  producto al carrito
+                              _cartItems.add(cart);
                             });
+                            // Depurar los datos antes de enviarlos
+                            print(
+                                "Datos enviados al servidor: ${cart.toMap()}");
+                            // Añadir el producto al carrito
+                            await _cartController.addToCart(cart);
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                   content: Text('Producto añadido al carrito')),

@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
+import '../../models/cart.dart';
 
 class CartPage extends StatelessWidget {
-  final List<Product> cartItems;
+  final List<Cart> cartItems; 
     final int rentalDays;
   final double totalPrice;
   
@@ -21,21 +22,23 @@ class CartPage extends StatelessWidget {
           : ListView.builder(
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
-                final product = cartItems[index];
-                final productTotal = product.precio * rentalDays;
+                final cartItem = cartItems[index];
+                 final productTotal = cartItem.precio* cartItem.rentalDays * cartItem.cantidad; 
                 return ListTile(
                   leading: Image.network(
-                    product.imagen,
+                    cartItem.imagen,
                     height: 50,
                     width: 50,
                     fit: BoxFit.cover,
                   ),
-                  title: Text(product.nombre),
+                  title: Text(cartItem.nombre),
                   subtitle: Text(
-                      'Precio por día: Bs.${product.precio.toStringAsFixed(2)}\n'
-                    'Total por $rentalDays día(s): Bs.${productTotal.toStringAsFixed(2)}\n'
-                    'Talla: ${product.talla.isNotEmpty ? product.talla.join(', ') : 'No seleccionada'}\n'
-                    'Color: ${product.color.isNotEmpty ? product.color.join(', ') : 'No seleccionado'}',
+                         'Cantidad: ${cartItem.cantidad}\n'
+                    'Color: ${cartItem.color}\n'
+                    'Talla: ${cartItem.talla}\n'
+                    'Días de alquiler: ${cartItem.rentalDays}\n'
+                    'Precio por día: Bs.${cartItem.precio.toStringAsFixed(2)}\n'  // Usamos directamente `precio`
+                    'Total por el producto: Bs.${productTotal.toStringAsFixed(2)}'
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
