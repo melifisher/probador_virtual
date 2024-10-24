@@ -14,9 +14,9 @@ import 'screens/home_page.dart';
 import 'screens/category/categories_page.dart';
 import 'screens/category/category_detail_page.dart';
 import 'screens/client/profile_page.dart';
-import 'screens/alquiler/alquiler_detail_screen.dart';
 import 'screens/alquiler/alquiler_list_screen.dart';
 import 'screens/alquiler/alquiler_detail_page.dart';
+import 'screens/recommendation/recommendations_page.dart';
 
 void main() async {
   await Environment.initEnvironment();
@@ -83,6 +83,9 @@ class MyApp extends StatelessWidget {
                 builder: (context) => AlquilerDetailPage(
                       rental: alquiler,
                     ));
+          case '/recommendations':
+            return MaterialPageRoute(
+                builder: (context) => const RecommendationsPage());
           default:
             return MaterialPageRoute(
               builder: (context) => Scaffold(

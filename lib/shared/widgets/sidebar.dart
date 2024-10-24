@@ -66,6 +66,16 @@ class DrawerWidget extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.shopping_cart),
+            title: const Text('Recomendaciones'),
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/recommendations',
+              );
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.category),
             title: const Text('Categorias de prendas'),
             onTap: () {
