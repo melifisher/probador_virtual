@@ -47,10 +47,16 @@ class DrawerWidget extends StatelessWidget {
           ),
           ListTile(
             leading: const Icon(Icons.shopping_cart),
-            title: const Text('Cart'),
+            title: user?.rol == 'client' // Verificamos si el rol es 'cliente'
+                ? const Text('Cart') // Solo los clientes pueden ver esta opción
+                : null, // Si no es cliente, no mostramos nada
             onTap: () {
-              // TODO: Implement cart functionality
-              Navigator.pop(context);
+              if (user?.rol == 'client') {
+                Navigator.pushNamed(
+                  context,
+                  '/cart', // Ruta que lleva a la página del carrito
+                );
+              }
             },
           ),
           ListTile(

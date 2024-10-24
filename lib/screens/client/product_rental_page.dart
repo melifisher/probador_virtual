@@ -51,7 +51,14 @@ class _ProductRentalPageState extends State<ProductRentalPage> {
       });
     }
   }
-
+  // Función para cargar el carrito desde SharedPreferences
+  Future<void> _loadCartItems() async {
+    List<Cart> loadedCartItems = await _cartController.loadCartItems();
+    setState(() {
+      _cartItems = loadedCartItems;
+    });
+  }
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(

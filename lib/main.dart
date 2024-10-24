@@ -17,6 +17,7 @@ import 'screens/client/profile_page.dart';
 import 'screens/alquiler/alquiler_detail_screen.dart';
 import 'screens/alquiler/alquiler_list_screen.dart';
 import 'screens/alquiler/alquiler_detail_page.dart';
+import 'screens/rent/cart_page.dart';
 
 void main() async {
   await Environment.initEnvironment();
@@ -72,6 +73,16 @@ class MyApp extends StatelessWidget {
                 category: category,
               ),
             );
+          case '/cart':
+            return MaterialPageRoute(
+              builder: (context) => CartPage(
+                cartItems: [], // Puedes pasar los items del carrito aquí si es necesario
+                rentalDays: 0, // Ajusta los días según la lógica de tu app
+                totalPrice:
+                    0, // Ajusta el precio total según la lógica de tu app
+              ),
+            );
+
           case '/profile':
             return MaterialPageRoute(builder: (context) => const ProfilePage());
           case '/rentals':
