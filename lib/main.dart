@@ -16,7 +16,8 @@ import 'screens/category/category_detail_page.dart';
 import 'screens/client/profile_page.dart';
 import 'screens/alquiler/alquiler_list_screen.dart';
 import 'screens/alquiler/alquiler_detail_page.dart';
-import 'screens/recommendation/recommendations_page.dart';
+import 'screens/recommendation/recommended_products_page.dart';
+import 'screens/recommendation/choose_recommendation_page.dart';
 
 void main() async {
   await Environment.initEnvironment();
@@ -85,7 +86,11 @@ class MyApp extends StatelessWidget {
                     ));
           case '/recommendations':
             return MaterialPageRoute(
-                builder: (context) => const RecommendationsPage());
+                builder: (context) => const ChooseRecommendationsPage());
+          case '/recommended_products':
+            final type = settings.arguments as int?;
+            return MaterialPageRoute(
+                builder: (context) => RecommendationsPage(type: type ?? 0));
           default:
             return MaterialPageRoute(
               builder: (context) => Scaffold(

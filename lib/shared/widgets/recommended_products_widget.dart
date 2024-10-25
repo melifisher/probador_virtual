@@ -5,10 +5,12 @@ import '../../shared/widgets/product_card.dart';
 
 class RecommendedProductsWidget extends StatefulWidget {
   final int userId;
+  final int type;
 
   const RecommendedProductsWidget({
     super.key,
     required this.userId,
+    required this.type,
   });
 
   @override
@@ -23,7 +25,7 @@ class _RecommendedProductsWidgetState extends State<RecommendedProductsWidget> {
   @override
   void initState() {
     super.initState();
-    _recommendationService = RecommendationService();
+    _recommendationService = RecommendationService(type: widget.type);
     _loadRecommendations();
   }
 
