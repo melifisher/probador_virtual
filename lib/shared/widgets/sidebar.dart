@@ -45,14 +45,15 @@ class DrawerWidget extends StatelessWidget {
               ),
             ),
           ),
-          ListTile(
-            leading: const Icon(Icons.shopping_cart),
-            title: const Text('Cart'),
-            onTap: () {
-              // TODO: Implement cart functionality
-              Navigator.pop(context);
-            },
-          ),
+          if (user?.rol == 'client')
+            ListTile(
+              leading: const Icon(Icons.shopping_cart),
+              title: const Text('Cart'),
+              onTap: () {
+                // TODO: Implement cart functionality
+                Navigator.pop(context);
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.history),
             title: user?.rol == 'administrator'
@@ -65,16 +66,28 @@ class DrawerWidget extends StatelessWidget {
               );
             },
           ),
-          ListTile(
-            leading: const Icon(Icons.shopping_cart),
-            title: const Text('Recomendaciones'),
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                '/recommendations',
-              );
-            },
-          ),
+          if (user?.rol == 'administrator')
+            ListTile(
+              leading: const Icon(Icons.receipt),
+              title: const Text('Devoluciones'),
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/devoluciones',
+                );
+              },
+            ),
+          if (user?.rol == 'client')
+            ListTile(
+              leading: const Icon(Icons.recommend),
+              title: const Text('Recomendaciones'),
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/recommendations',
+                );
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.category),
             title: const Text('Categorias de prendas'),
