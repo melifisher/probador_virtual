@@ -72,6 +72,18 @@ class DrawerWidget extends StatelessWidget {
             },
           ),
           ListTile(
+            leading: const Icon(Icons.location_on_sharp),
+            title: user?.rol == 'client'
+            ? const Text('Mis Direcciones')
+            : null,
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/listAddress',
+              );
+            },
+          ),
+          ListTile(
             leading: const Icon(Icons.category),
             title: const Text('Categorias de prendas'),
             onTap: () {

@@ -18,14 +18,21 @@ import 'screens/alquiler/alquiler_detail_screen.dart';
 import 'screens/alquiler/alquiler_list_screen.dart';
 import 'screens/alquiler/alquiler_detail_page.dart';
 import 'screens/rent/cart_page.dart';
+import 'screens/address/list_address_page.dart';
+import 'screens/address/create_address_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() async {
   await Environment.initEnvironment();
   WidgetsFlutterBinding.ensureInitialized();
+   // Inicializar SharedPreferences y cargar user_id
+  final prefs = await SharedPreferences.getInstance();
+  int? userId = prefs.getInt('user_id'); // Carga el user_id si está guardado
 
   runApp(
     ChangeNotifierProvider(
       create: (context) => AuthProvider(),
+      
       child: const MyApp(),
     ),
   );
@@ -80,7 +87,15 @@ class MyApp extends StatelessWidget {
                 rentalDays: 0, // Ajusta los días según la lógica de tu app
                 totalPrice:
                     0, // Ajusta el precio total según la lógica de tu app
+                
               ),
+            );
+          case '/listAddress':
+            return MaterialPageRoute(builder: (context) => ListAddressPage());
+
+          case '/addAddress':
+            return MaterialPageRoute(
+              builder: (context) => CreateAddressPage(),
             );
 
           case '/profile':

@@ -7,6 +7,8 @@ import '../../models/category.dart';
 import '../../shared/shared.dart';
 import '../client/product_rental_page.dart';
 import '../../providers/auth_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../client/product_order_rental_page.dart';
 
 class ProductDetailView extends StatefulWidget {
   final Product? product;
@@ -27,6 +29,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   late TextEditingController _tallaController;
   late TextEditingController _colorController;
   bool _isEditing = false;
+  bool _alquilerPorPrendaSeleccionado = false;
   List<Category> _categories = [];
   Category? _selectedCategory;
 
@@ -207,16 +210,35 @@ class _ProductDetailViewState extends State<ProductDetailView> {
               if (user?.rol == 'client' && user != null)
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ProductRentalPage(
-                            product: widget.product!,
-                            user: user,
+                    onPressed: () async {
+                      // Verificar si ya existe una opción de alquiler guardada
+                      final prefs = await SharedPreferences.getInstance();
+                      final alquilerOption = prefs.getString('alquilerOption');
+
+                      // Mostrar diálogo si no hay opción guardada
+                      if (alquilerOption == null) {
+                        await _showRentalOptionsDialog();
+                      } else if (alquilerOption == 'prenda') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductRentalPage(
+                              product: widget.product!,
+                              user: user,
+                            ),
                           ),
-                        ),
-                      );
+                        );
+                      } else if (alquilerOption == 'pedido') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductOrderRentalPage(
+                              product: widget.product!,
+                              user: user,
+                            ),
+                          ),
+                        );
+                      }
                     },
                     child: const Text('Alquilar'),
                   ),
@@ -311,6 +333,55 @@ class _ProductDetailViewState extends State<ProductDetailView> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showRentalOptionsDialog() async {
+    final selectedOption = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('¿Cómo deseas alquilar?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('prenda'),
+              child: Text('Alquilar por prenda'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('pedido'),
+              child: Text('Alquiler por pedido'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Verificar la opción seleccionada
+    if (selectedOption != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('alquilerOption', selectedOption);
+
+      if (selectedOption == 'prenda') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductRentalPage(
+              product: widget.product!,
+              user: Provider.of<AuthProvider>(context, listen: false).user!,
+            ),
+          ),
+        );
+      } else if (selectedOption == 'pedido') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductOrderRentalPage(
+              product: widget.product!,
+              user: Provider.of<AuthProvider>(context, listen: false).user!,
+            ),
+          ),
         );
       }
     }

@@ -3,7 +3,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert'; // Para la codificación y decodificación de JSON
 import '../../models/cart.dart'; // Asegúrate de tener tu modelo 'Cart' bien estructurado
 import '../product/products_page.dart'; // Importa la página de productos
-  
+import 'package:provider/provider.dart';
+import '../../models/address.dart';
+import '../../controllers/address_controller.dart';
+import '../../providers/auth_provider.dart';
 
 class CartPage extends StatefulWidget {
   final List<Cart> cartItems;
@@ -22,76 +25,162 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
-  late List<Cart>
-      cartItems; // Haremos que esta variable sea dinámica para manejar el estado
-  late double totalPrice;
+ List<Cart> cartItems = [];
+  late double totalPrice =0.0;
+  String deliveryOption = "delivery"; // Estado para opción seleccionada
+  double deliveryCost = 10.0; // Costo adicional de delivery
+  Address? selectedAddress;
 
   @override
   void initState() {
     super.initState();
-    cartItems =
-        widget.cartItems; // Inicializamos con los valores pasados al widget
-    totalPrice = widget.totalPrice;
-    _loadCartItems(); // Cargar productos del carrito desde SharedPreferences
+    _loadCartItems();
+    _loadDeliveryOption();
+    _loadSelectedAddress(); // Cargar la dirección seleccionada
   }
 
   // Método para cargar los productos del carrito desde SharedPreferences
   Future<void> _loadCartItems() async {
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user == null) return;
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
-    List<String>? cartItemsJson = prefs.getStringList('cartItems');
+    String userCartKey = 'cartItems_${user.id}';
+    List<String>? cartItemsJson = prefs.getStringList(userCartKey);
     if (cartItemsJson != null) {
       setState(() {
         cartItems = cartItemsJson
             .map((jsonItem) => Cart.fromMap(jsonDecode(jsonItem)))
             .toList();
-        totalPrice = cartItems.fold(0.0, (sum, cartItem) {
-          return sum +
-              (cartItem.precio * cartItem.rentalDays * cartItem.cantidad);
-        });
+        _updateTotalPrice();
       });
     }
   }
 
+  Future<void> _loadDeliveryOption() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      deliveryOption = prefs.getString('deliveryOption') ?? "delivery";
+    });
+  }
+
+  Future<void> _loadSelectedAddress() async {
+    // Cargar la dirección seleccionada desde el AddressController
+    final addressController =
+        Provider.of<AddressController>(context, listen: false);
+    setState(() {
+      selectedAddress = addressController.addresses.firstWhere(
+          (address) => address.isSelected,
+          orElse: () => addressController.addresses.first);
+    });
+  }
+
   // Método para guardar los productos del carrito en SharedPreferences
   Future<void> _saveCartItems() async {
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user == null) return;
+
     final SharedPreferences prefs = await SharedPreferences.getInstance();
+    String userCartKey =
+        'cartItems_${user.id}'; // Clave específica para el usuario
     List<String> cartItemsJson =
         cartItems.map((cart) => jsonEncode(cart.toMap())).toList();
-    await prefs.setStringList('cartItems', cartItemsJson);
+    await prefs.setStringList(userCartKey, cartItemsJson);
   }
 
   // Método para eliminar un producto del carrito y actualizar SharedPreferences
   void _removeCartItem(int index) {
     setState(() {
       cartItems.removeAt(index);
-      totalPrice = cartItems.fold(0.0, (sum, cartItem) {
-        return sum +
-            (cartItem.precio * cartItem.rentalDays * cartItem.cantidad);
-      });
-      _saveCartItems(); // Guardamos el estado actualizado
+      _updateTotalPrice();
+      _saveCartItems();
     });
+  }
+
+  void _updateTotalPrice() {
+    double itemsTotal = cartItems.fold(0.0, (sum, cartItem) {
+      return sum + (cartItem.precio * cartItem.rentalDays * cartItem.cantidad);
+    });
+
+    // Agregar el costo de delivery si está seleccionado
+    setState(() {
+      totalPrice =
+          itemsTotal + (deliveryOption == "delivery" ? deliveryCost : 0.0);
+    });
+  }
+
+    Future<void> clearSessionData() async {
+    final user = Provider.of<AuthProvider>(context, listen: false).user;
+    if (user == null) return;
+
+    final prefs = await SharedPreferences.getInstance();
+    String userCartKey = 'cartItems_${user.id}';
+    await prefs.remove(userCartKey);
+  }
+
+  void _changeDeliveryOption(String option) {
+    setState(() {
+      deliveryOption = option;
+    });
+    _updateTotalPrice();
   }
 
   @override
   Widget build(BuildContext context) {
-    // Calcular el precio total basado en el carrito actual
-    double calculatedTotalPrice = cartItems.fold(0.0, (sum, cartItem) {
-      return sum + (cartItem.precio * cartItem.rentalDays * cartItem.cantidad);
-    });
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Carrito de Alquiler'),
       ),
-      body: cartItems.isEmpty
-          ? const Center(child: Text('No hay productos en el carrito.'))
-          : ListView.builder(
+      body: Column(
+        children: [
+          // Opciones de entrega (Delivery o Retiro)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ChoiceChip(
+                  label: Row(
+                    children: const [
+                      Icon(Icons.delivery_dining),
+                      SizedBox(width: 4),
+                      Text("Delivery"),
+                    ],
+                  ),
+                  selected: deliveryOption == "delivery",
+                  onSelected: (selected) {
+                    if (selected) _changeDeliveryOption("delivery");
+                  },
+                ),
+                const SizedBox(width: 8),
+                ChoiceChip(
+                  label: Row(
+                    children: const [
+                      Icon(Icons.store),
+                      SizedBox(width: 4),
+                      Text("Retiro"),
+                    ],
+                  ),
+                  selected: deliveryOption == "pickup",
+                  onSelected: (selected) {
+                    if (selected) _changeDeliveryOption("pickup");
+                  },
+                ),
+              ],
+            ),
+          ),
+          if (selectedAddress != null && deliveryOption == "delivery")
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text("Dirección de entrega: ${selectedAddress!.street}"),
+            ),
+          Expanded(
+            child: ListView.builder(
               itemCount: cartItems.length,
               itemBuilder: (context, index) {
                 final cartItem = cartItems[index];
                 final productTotal =
                     cartItem.precio * cartItem.rentalDays * cartItem.cantidad;
-
                 return ListTile(
                   leading: Image.network(
                     cartItem.imagen,
@@ -110,14 +199,14 @@ class _CartPageState extends State<CartPage> {
                   ),
                   trailing: IconButton(
                     icon: const Icon(Icons.delete),
-                    onPressed: () {
-                      _removeCartItem(
-                          index); // Eliminar el producto y actualizar el carrito
-                    },
+                    onPressed: () => _removeCartItem(index),
                   ),
                 );
               },
             ),
+          ),
+        ],
+      ),
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -125,7 +214,6 @@ class _CartPageState extends State<CartPage> {
           children: [
             ElevatedButton(
               onPressed: () {
-                // Redirigir a la página de productos
                 Navigator.push(
                   context,
                   MaterialPageRoute(builder: (context) => ProductsPage()),
@@ -133,13 +221,12 @@ class _CartPageState extends State<CartPage> {
               },
               child: const Text('Agregar más productos'),
             ),
-            const SizedBox(height: 8), // Espacio entre los botones
+            const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () {
                 // Lógica para proceder al pago o checkout
               },
-              child: Text(
-                  'Ir a Pagar (Bs.${calculatedTotalPrice.toStringAsFixed(2)})'),
+              child: Text('Ir a Pagar (Bs.${totalPrice.toStringAsFixed(2)})'),
             ),
           ],
         ),
