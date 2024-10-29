@@ -7,6 +7,11 @@ import 'package:provider/provider.dart';
 import '../../models/address.dart';
 import '../../controllers/address_controller.dart';
 import '../../providers/auth_provider.dart';
+import '../../shared/shared.dart';
+import '../../models/alquiler.dart';
+import '../../models/detalle_alquiler.dart';
+import '../../controllers/alquiler_controller.dart';
+import '../../controllers/detalle_alquiler_controller.dart';
 
 class CartPage extends StatefulWidget {
   final List<Cart> cartItems;
@@ -25,8 +30,8 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
- List<Cart> cartItems = [];
-  late double totalPrice =0.0;
+  List<Cart> cartItems = [];
+  late double totalPrice = 0.0;
   String deliveryOption = "delivery"; // Estado para opción seleccionada
   double deliveryCost = 10.0; // Costo adicional de delivery
   Address? selectedAddress;
@@ -109,7 +114,7 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
-    Future<void> clearSessionData() async {
+  Future<void> clearSessionData() async {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     if (user == null) return;
 
@@ -131,6 +136,7 @@ class _CartPageState extends State<CartPage> {
       appBar: AppBar(
         title: const Text('Carrito de Alquiler'),
       ),
+      drawer: const DrawerWidget(),
       body: Column(
         children: [
           // Opciones de entrega (Delivery o Retiro)
@@ -223,12 +229,60 @@ class _CartPageState extends State<CartPage> {
             ),
             const SizedBox(height: 8),
             ElevatedButton(
-              onPressed: () {
-                // Lógica para proceder al pago o checkout
+              onPressed: () async {
+                final user = Provider.of<AuthProvider>(context, listen: false).user;
+                if (user == null) return;
+
+                // Create new rental
+                final alquiler = Alquiler(
+                  id: 0, // The API will assign the real ID
+                  usuarioId: user.id,
+                  fechaReserva: DateTime.now(),
+                  fechaDevolucion: DateTime.now().add(Duration(days: widget.rentalDays)),
+                  precio: totalPrice,
+                  estado: 'pendiente'
+                );
+
+                try {
+                  // Create rental first
+                  final alquilerController = AlquilerController();
+                  final createdAlquiler = await alquilerController.createAlquiler(alquiler);
+
+                  // Create rental details for each cart item
+                  final detalleController = DetalleAlquilerController();
+                  for (var item in cartItems) {
+                    final detalle = DetalleAlquiler(
+                      alquilerId: createdAlquiler.id,
+                      productId: item.productId,
+                      cantidad: item.cantidad,
+                      precio: item.precio,
+                      talla: item.talla,
+                      color: item.color
+                    );
+                    await detalleController.createDetalleAlquiler(detalle);
+                  }
+
+                  // Clear cart after successful creation
+                  await clearSessionData();
+                  
+                  // Show success message and navigate back
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Alquiler creado exitosamente'))
+                  );
+                  Navigator.pushNamed(
+                context,
+                '/rental',
+                arguments: alquiler,
+              )
+                  
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al crear el alquiler: $e'))
+                  );
+                }
               },
               child: Text('Ir a Pagar (Bs.${totalPrice.toStringAsFixed(2)})'),
-            ),
-          ],
+            ),          ],
         ),
       ),
     );
