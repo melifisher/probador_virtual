@@ -61,18 +61,32 @@ class _RecommendedProductsWidgetState extends State<RecommendedProductsWidget> {
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            itemCount: _recommendations!.length,
-            itemBuilder: (context, index) {
-              final product = _recommendations![index];
-              return ProductCard(
-                product: product,
-                onTap: () {
-                  Navigator.pushNamed(
-                    context,
-                    '/product',
-                    arguments: product,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final width = constraints.maxWidth;
+              final cardWidth = 180.0; // Ancho deseado para cada tarjeta
+              final crossAxisCount = (width / cardWidth).floor();
+
+              return GridView.builder(
+                padding: const EdgeInsets.all(8.0),
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: crossAxisCount,
+                  childAspectRatio: 0.7,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
+                ),
+                itemCount: _recommendations!.length,
+                itemBuilder: (context, index) {
+                  final product = _recommendations![index];
+                  return ProductCard(
+                    product: product,
+                    onTap: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/product',
+                        arguments: product,
+                      );
+                    },
                   );
                 },
               );

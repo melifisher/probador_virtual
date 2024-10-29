@@ -45,6 +45,16 @@ class DrawerWidget extends StatelessWidget {
               ),
             ),
           ),
+          ListTile(
+            leading: const Icon(Icons.home),
+            title: const Text('Inicio'),
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/products',
+              );
+            },
+          ),
           if (user?.rol == 'client')
             ListTile(
               leading: const Icon(Icons.shopping_cart),
