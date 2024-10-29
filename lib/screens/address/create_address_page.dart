@@ -5,6 +5,7 @@ import 'package:probador_virtual/screens/address/map_selection_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import '../../config/environment/environment.dart';
 
 class CreateAddressPage extends StatefulWidget {
   @override
@@ -36,42 +37,46 @@ class _CreateAddressPageState extends State<CreateAddressPage> {
   }
 
   Future<void> _saveAddress() async {
-  if (selectedLocation != null) {
-    // Obtén el user_id desde SharedPreferences
-    final prefs = await SharedPreferences.getInstance();
-    int? userId = prefs.getInt('user_id'); // Carga el user_id guardado
+    if (selectedLocation != null) {
+      // Obtén el user_id desde SharedPreferences
+      final prefs = await SharedPreferences.getInstance();
+      int? userId = prefs.getInt('user_id'); // Carga el user_id guardado
 
-    if (userId == null) {
-      print("Error: No se encontró el user_id en SharedPreferences.");
-      return;
-    }
+      if (userId == null) {
+        print("Error: No se encontró el user_id en SharedPreferences.");
+        return;
+      }
 
-    final url = 'http://localhost:3000/api/address';
-    final response = await http.post(
-      Uri.parse(url),
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({
-        "user_id": userId, // Usa el user_id obtenido de SharedPreferences
-        "street": addressController.text,
-        "number": neighborhoodController.text,
-        "city": "Tu ciudad", // Añade el campo de ciudad si es necesario
-        "latitude": selectedLocation!.latitude, // Añade latitud
-        "longitude": selectedLocation!.longitude // Añade longitud
-      }),
-    );
-
-    if (response.statusCode == 201) {
-      final newAddress = jsonDecode(response.body);
-      print("Dirección guardada exitosamente");
-      Navigator.pop(context, newAddress); // Envía un valor `true` al regresar
+      try {
+        final url = '${Environment.apiUrl}/api/address';
+        final response = await http.post(
+          Uri.parse(url),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "user_id": userId, // Usa el user_id obtenido de SharedPreferences
+            "street": addressController.text,
+            "number": neighborhoodController.text,
+            "city": "Tu ciudad", // Añade el campo de ciudad si es necesario
+            "latitude": selectedLocation!.latitude, // Añade latitud
+            "longitude": selectedLocation!.longitude // Añade longitud
+          }),
+        );
+        if (response.statusCode == 201) {
+          final newAddress = jsonDecode(response.body);
+          print("Dirección guardada exitosamente");
+          Navigator.pop(
+              context, newAddress); // Envía un valor `true` al regresar
+        } else {
+          print("Error al guardar la dirección");
+        }
+      } catch (e) {
+        print('Error address: $e');
+        throw Exception(e);
+      }
     } else {
-      print("Error al guardar la dirección");
+      print("Seleccione una ubicación en el mapa.");
     }
-  } else {
-    print("Seleccione una ubicación en el mapa.");
   }
-}
-
 
   @override
   Widget build(BuildContext context) {

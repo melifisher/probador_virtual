@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import '../../config/environment/environment.dart';
+import '../../shared/shared.dart';
 
 class ListAddressPage extends StatefulWidget {
   @override
@@ -18,20 +20,23 @@ class _ListAddressPageState extends State<ListAddressPage> {
     _fetchAddresses();
   }
 
-Future<void> _fetchAddresses() async {
+  Future<void> _fetchAddresses() async {
     // Obtén el user_id de SharedPreferences
     final prefs = await SharedPreferences.getInstance();
-    int? userId = prefs.getInt('user_id'); // Obtiene el ID del usuario autenticado
+    int? userId =
+        prefs.getInt('user_id'); // Obtiene el ID del usuario autenticado
 
     if (userId != null) {
       // Construye la URL con el user_id dinámico
-      final response = await http.get(Uri.parse('http://localhost:3000/api/address/$userId'));
+      final response = await http
+          .get(Uri.parse('${Environment.apiUrl}/api/address/$userId'));
 
       if (response.statusCode == 200) {
         setState(() {
           addresses = json.decode(response.body);
-           // Recupera el ID de la dirección seleccionada 
-          selectedAddressId = prefs.getString('selectedAddressId') ?? addresses.first['id'].toString();
+          // Recupera el ID de la dirección seleccionada
+          selectedAddressId = prefs.getString('selectedAddressId') ??
+              addresses.first['id'].toString();
         });
       } else {
         print('Error al obtener direcciones');
@@ -46,8 +51,8 @@ Future<void> _fetchAddresses() async {
       selectedAddressId = addressId;
     });
   }
-    Future<void> _navigateToAddAddress() async {
-    
+
+  Future<void> _navigateToAddAddress() async {
     final newAddress = await Navigator.pushNamed(context, '/addAddress');
     if (newAddress != null) {
       setState(() {
@@ -64,10 +69,11 @@ Future<void> _fetchAddresses() async {
         actions: [
           IconButton(
             icon: Icon(Icons.add),
-              onPressed: _navigateToAddAddress, 
+            onPressed: _navigateToAddAddress,
           ),
         ],
       ),
+      drawer: const DrawerWidget(),
       body: addresses.isEmpty
           ? Center(child: Text('No tienes direcciones guardadas'))
           : ListView.builder(
@@ -88,12 +94,11 @@ Future<void> _fetchAddresses() async {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ElevatedButton(
-            onPressed: () async {
+          onPressed: () async {
             if (selectedAddressId != null) {
               final prefs = await SharedPreferences.getInstance();
               await prefs.setString('selectedAddressId', selectedAddressId!);
-              
-          
+
               print('Dirección seleccionada: $selectedAddressId');
 
               // Actualiza el estado para reflejar la selección en la vista
@@ -102,7 +107,7 @@ Future<void> _fetchAddresses() async {
               });
 
               // Regresa al contexto previo (opcional)
-            //  Navigator.pop(context, selectedAddressId);
+              //  Navigator.pop(context, selectedAddressId);
             }
           },
           child: Text('Aceptar'),
