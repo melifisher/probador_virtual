@@ -46,8 +46,19 @@ class DrawerWidget extends StatelessWidget {
             ),
           ),
           ListTile(
-            leading: const Icon(Icons.shopping_cart),
-            title: user?.rol == 'client' // Verificamos si el rol es 'cliente'
+            leading: const Icon(Icons.home),
+            title: const Text('Inicio'),
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/products',
+              );
+            },
+          ),
+          if (user?.rol == 'client')
+            ListTile(
+              leading: const Icon(Icons.shopping_cart),
+              title: user?.rol == 'client' // Verificamos si el rol es 'cliente'
                 ? const Text('Cart') // Solo los clientes pueden ver esta opción
                 : null, // Si no es cliente, no mostramos nada
             onTap: () {
@@ -57,8 +68,7 @@ class DrawerWidget extends StatelessWidget {
                   '/cart', // Ruta que lleva a la página del carrito
                 );
               }
-            },
-          ),
+            ),
           ListTile(
             leading: const Icon(Icons.history),
             title: user?.rol == 'administrator'
@@ -71,6 +81,28 @@ class DrawerWidget extends StatelessWidget {
               );
             },
           ),
+          if (user?.rol == 'administrator')
+            ListTile(
+              leading: const Icon(Icons.receipt),
+              title: const Text('Devoluciones'),
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/devoluciones',
+                );
+              },
+            ),
+          if (user?.rol == 'client')
+            ListTile(
+              leading: const Icon(Icons.recommend),
+              title: const Text('Recomendaciones'),
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/recommendations',
+                );
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.location_on_sharp),
             title: user?.rol == 'client'

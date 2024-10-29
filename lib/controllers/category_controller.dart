@@ -29,7 +29,6 @@ class CategoryController {
           await http.get(Uri.parse('${Environment.apiUrl}/api/categories/$id'));
       if (response.statusCode == 200) {
         final dynamic categoryJson = json.decode(response.body);
-        print('Category json: $categoryJson');
         return Category.fromMap(categoryJson);
       } else {
         throw Exception('Failed to load category');

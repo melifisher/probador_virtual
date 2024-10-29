@@ -21,7 +21,7 @@ class Alquiler {
       'user_id': usuarioId,
       'fecha_reserva': fechaReserva.toIso8601String(),
       'fecha_devolucion': fechaDevolucion.toIso8601String(),
-      'precio': precio,
+      'precio_total': precio,
       'estado': estado,
     };
   }
@@ -33,9 +33,9 @@ class Alquiler {
           map['user_id'] is String ? int.parse(map['user_id']) : map['user_id'],
       fechaReserva: DateTime.parse(map['fecha_reserva']),
       fechaDevolucion: DateTime.parse(map['fecha_devolucion']),
-      precio: map['precio'] is String
-          ? double.parse(map['precio'])
-          : (map['precio'] as num).toDouble(),
+      precio: map['precio_total'] is String
+          ? double.parse(map['precio_total'])
+          : (map['precio_total'] as num).toDouble(),
       estado: map['estado'],
     );
   }

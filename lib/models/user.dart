@@ -2,14 +2,14 @@ class User {
   final int id;
   final String username;
   final String email;
-  final String telefono;
+  final String password;
   final String rol;
 
   User({
     required this.id,
     required this.username,
     required this.email,
-    required this.telefono,
+    required this.password,
     required this.rol,
   });
 
@@ -18,7 +18,7 @@ class User {
       'id': id,
       'username': username,
       'email': email,
-      'telefono': telefono,
+      'password': password,
       'rol': rol,
     };
   }
@@ -28,7 +28,7 @@ class User {
       id: int.parse(map['id']),
       username: map['username'],
       email: map['email'] ?? '',
-      telefono: map['telefono'] ?? '',
+      password: map['password'] ?? '',
       rol: map['rol'],
     );
   }

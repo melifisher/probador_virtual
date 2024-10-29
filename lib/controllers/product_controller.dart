@@ -29,6 +29,25 @@ class ProductController {
     }
   }
 
+  Future<List<Product>> getProductsDisponibles(int? categoryId) async {
+    try {
+      final response = categoryId == null
+          ? await http
+              .get(Uri.parse('${Environment.apiUrl}/api/products/disponibles'))
+          : await http.get(Uri.parse(
+              '${Environment.apiUrl}/api/products/disponibles/category/$categoryId'));
+      if (response.statusCode == 200) {
+        final List<dynamic> productsJson = json.decode(response.body);
+        return productsJson.map((json) => Product.fromJson(json)).toList();
+      } else {
+        throw Exception('Failed to load products');
+      }
+    } catch (e) {
+      print('Error loading products: $e');
+      throw Exception(e);
+    }
+  }
+
   Future<Product> getProduct(int id) async {
     try {
       final response =

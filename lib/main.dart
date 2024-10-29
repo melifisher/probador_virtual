@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'models/devolucion.dart';
 import 'providers/auth_provider.dart';
 import 'config/environment/environment.dart';
 import 'config/theme/app_theme.dart';
@@ -14,13 +15,17 @@ import 'screens/home_page.dart';
 import 'screens/category/categories_page.dart';
 import 'screens/category/category_detail_page.dart';
 import 'screens/client/profile_page.dart';
-import 'screens/alquiler/alquiler_detail_screen.dart';
 import 'screens/alquiler/alquiler_list_screen.dart';
 import 'screens/alquiler/alquiler_detail_page.dart';
 import 'screens/rent/cart_page.dart';
 import 'screens/address/list_address_page.dart';
 import 'screens/address/create_address_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/devolucion/devolucion_list_page.dart';
+import 'screens/devolucion/devolucion_detail_page.dart';
+import 'screens/recommendation/recommended_products_page.dart';
+import 'screens/recommendation/choose_recommendation_page.dart';
+
 
 void main() async {
   await Environment.initEnvironment();
@@ -109,6 +114,22 @@ class MyApp extends StatelessWidget {
                 builder: (context) => AlquilerDetailPage(
                       rental: alquiler,
                     ));
+          case '/devoluciones':
+            return MaterialPageRoute(
+                builder: (context) => const DevolucionListPage());
+          case '/devolucion':
+            final alquiler = settings.arguments as Devolucion?;
+            return MaterialPageRoute(
+                builder: (context) => DevolucionDetailPage(
+                      devolucion: alquiler,
+                    ));
+          case '/recommendations':
+            return MaterialPageRoute(
+                builder: (context) => const ChooseRecommendationsPage());
+          case '/recommended_products':
+            final type = settings.arguments as int?;
+            return MaterialPageRoute(
+                builder: (context) => RecommendationsPage(type: type ?? 0));
           default:
             return MaterialPageRoute(
               builder: (context) => Scaffold(
