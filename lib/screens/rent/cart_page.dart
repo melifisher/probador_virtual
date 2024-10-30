@@ -230,59 +230,57 @@ class _CartPageState extends State<CartPage> {
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () async {
-                final user = Provider.of<AuthProvider>(context, listen: false).user;
+                final user =
+                    Provider.of<AuthProvider>(context, listen: false).user;
                 if (user == null) return;
 
                 // Create new rental
                 final alquiler = Alquiler(
-                  id: 0, // The API will assign the real ID
-                  usuarioId: user.id,
-                  fechaReserva: DateTime.now(),
-                  fechaDevolucion: DateTime.now().add(Duration(days: widget.rentalDays)),
-                  precio: totalPrice,
-                  estado: 'pendiente'
-                );
+                    id: 0, // The API will assign the real ID
+                    usuarioId: user.id,
+                    fechaReserva: DateTime.now(),
+                    fechaDevolucion:
+                        DateTime.now().add(Duration(days: widget.rentalDays)),
+                    precio: totalPrice,
+                    estado: 'pendiente');
 
                 try {
                   // Create rental first
                   final alquilerController = AlquilerController();
-                  final createdAlquiler = await alquilerController.createAlquiler(alquiler);
+                  final createdAlquiler =
+                      await alquilerController.createAlquiler(alquiler);
 
                   // Create rental details for each cart item
                   final detalleController = DetalleAlquilerController();
                   for (var item in cartItems) {
                     final detalle = DetalleAlquiler(
-                      alquilerId: createdAlquiler.id,
-                      productId: item.productId,
-                      cantidad: item.cantidad,
-                      precio: item.precio,
-                      talla: item.talla,
-                      color: item.color
-                    );
+                        alquilerId: createdAlquiler.id,
+                        productId: item.productId,
+                        cantidad: item.cantidad,
+                        precio: item.precio,
+                        talla: item.talla,
+                        color: item.color);
                     await detalleController.createDetalleAlquiler(detalle);
                   }
 
                   // Clear cart after successful creation
                   await clearSessionData();
-                  
+
                   // Show success message and navigate back
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Alquiler creado exitosamente'))
-                  );
+                  ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                      content: Text('Alquiler creado exitosamente')));
                   Navigator.pushNamed(
-                context,
-                '/rental',
-                arguments: alquiler,
-              )
-                  
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error al crear el alquiler: $e'))
+                    context,
+                    '/rentals',
                   );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('Error al crear el alquiler: $e')));
                 }
               },
               child: Text('Ir a Pagar (Bs.${totalPrice.toStringAsFixed(2)})'),
-            ),          ],
+            ),
+          ],
         ),
       ),
     );
