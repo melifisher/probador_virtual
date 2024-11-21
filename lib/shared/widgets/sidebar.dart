@@ -58,16 +58,14 @@ class DrawerWidget extends StatelessWidget {
           if (user?.rol == 'client')
             ListTile(
               leading: const Icon(Icons.shopping_cart),
-              title: user?.rol == 'client' // Verificamos si el rol es 'cliente'
-                ? const Text('Cart') // Solo los clientes pueden ver esta opción
-                : null, // Si no es cliente, no mostramos nada
-            onTap: () {
-              if (user?.rol == 'client') {
+              title:
+                  const Text('Cart'), // Muestra "Cart" solo para los clientes
+              onTap: () {
                 Navigator.pushNamed(
                   context,
                   '/cart', // Ruta que lleva a la página del carrito
                 );
-              }
+              },
             ),
           ListTile(
             leading: const Icon(Icons.history),
@@ -103,18 +101,17 @@ class DrawerWidget extends StatelessWidget {
                 );
               },
             ),
-          ListTile(
-            leading: const Icon(Icons.location_on_sharp),
-            title: user?.rol == 'client'
-            ? const Text('Mis Direcciones')
-            : null,
-            onTap: () {
-              Navigator.pushNamed(
-                context,
-                '/listAddress',
-              );
-            },
-          ),
+          if (user?.rol == 'client')
+            ListTile(
+              leading: const Icon(Icons.location_on_sharp),
+              title: const Text('Mis Direcciones'),
+              onTap: () {
+                Navigator.pushNamed(
+                  context,
+                  '/listAddress',
+                );
+              },
+            ),
           ListTile(
             leading: const Icon(Icons.category),
             title: const Text('Categorias de prendas'),

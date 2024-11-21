@@ -15,7 +15,6 @@ class AddressController with ChangeNotifier {
     loadAddresses();
   }
 
-
   // Cargar direcciones desde SharedPreferences
   Future<void> loadAddresses() async {
     final prefs = await SharedPreferences.getInstance();
@@ -38,11 +37,13 @@ class AddressController with ChangeNotifier {
       print('No hay user_id guardado');
     }
   }
+
   // Método para seleccionar una dirección
   void selectAddress(Address address) {
     _selectedAddress = address;
     notifyListeners(); // Notifica a los widgets para actualizarse
   }
+
   // Agregar una nueva dirección en el backend
   Future<void> addAddress(Address newAddress) async {
     final prefs = await SharedPreferences.getInstance();

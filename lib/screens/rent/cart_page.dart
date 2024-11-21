@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../../models/address.dart';
 import '../../controllers/address_controller.dart';
 import '../../providers/auth_provider.dart';
+import '../payment/payment_confirmation_page.dart';
 
 class CartPage extends StatefulWidget {
   final List<Cart> cartItems;
@@ -25,8 +26,8 @@ class CartPage extends StatefulWidget {
 }
 
 class _CartPageState extends State<CartPage> {
- List<Cart> cartItems = [];
-  late double totalPrice =0.0;
+  List<Cart> cartItems = [];
+  late double totalPrice = 0.0;
   String deliveryOption = "delivery"; // Estado para opción seleccionada
   double deliveryCost = 10.0; // Costo adicional de delivery
   Address? selectedAddress;
@@ -109,7 +110,7 @@ class _CartPageState extends State<CartPage> {
     });
   }
 
-    Future<void> clearSessionData() async {
+  Future<void> clearSessionData() async {
     final user = Provider.of<AuthProvider>(context, listen: false).user;
     if (user == null) return;
 
@@ -224,9 +225,17 @@ class _CartPageState extends State<CartPage> {
             const SizedBox(height: 8),
             ElevatedButton(
               onPressed: () {
-                // Lógica para proceder al pago o checkout
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PaymentConfirmationPage(
+                      cartItems: cartItems, // Pasa los productos del carrito
+                      totalAmount: totalPrice, // Pasa el total calculado
+                    ),
+                  ),
+                );
               },
-              child: Text('Ir a Pagar (Bs.${totalPrice.toStringAsFixed(2)})'),
+              child: const Text('Ir a Pagar'),
             ),
           ],
         ),
