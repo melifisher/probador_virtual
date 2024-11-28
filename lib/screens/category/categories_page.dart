@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:probador_virtual/controllers/category_controller.dart';
 import '../../models/category.dart';
-import '../../models/user.dart';
+import '../../providers/auth_provider.dart';
 import '../../shared/shared.dart';
 
 class CategoriesPage extends StatefulWidget {
-  final User user;
-  const CategoriesPage({super.key, required this.user});
+  const CategoriesPage({super.key});
 
   @override
   _CategoriesPageState createState() => _CategoriesPageState();
@@ -34,8 +34,12 @@ class _CategoriesPageState extends State<CategoriesPage> {
   Future<String?> _getFirstProductImage(int categoryId) async {
     try {
       final products = await _controller.getProductsByCategory(categoryId);
-      if (products.isNotEmpty && products.first.imagen != '') {
-        return products.first.imagen;
+      if (products.isNotEmpty) {
+        for (var product in products) {
+          if (product.imagen != '') {
+            return product.imagen;
+          }
+        }
       }
     } catch (e) {
       print('Error fetching first product image: $e');
@@ -65,6 +69,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Product Categories'),
@@ -98,7 +105,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
           ),
         ],
       ),
-      drawer: DrawerWidget(user: widget.user),
+      drawer: const DrawerWidget(),
       body: FutureBuilder<List<Category>>(
         future: _categoriesFuture,
         builder: (context, snapshot) {
@@ -126,10 +133,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                     Navigator.pushNamed(
                       context,
                       '/products',
-                      arguments: {
-                        'categoryId': category.id,
-                        'user': widget.user,
-                      },
+                      arguments: category.id,
                     );
                   },
                   child: Card(
@@ -149,8 +153,8 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                       child: CircularProgressIndicator());
                                 } else if (snapshot.hasError ||
                                     !snapshot.hasData) {
-                                  return Image.network(
-                                    'https://via.placeholder.com/150',
+                                  return Image.asset(
+                                    'assets/placeholder200.png',
                                     fit: BoxFit.cover,
                                   );
                                 } else {
@@ -158,9 +162,11 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                     snapshot.data!,
                                     fit: BoxFit.cover,
                                     errorBuilder: (context, error, stackTrace) {
-                                      return Image.network(
-                                        'https://via.placeholder.com/150',
+                                      return Image.asset(
+                                        'assets/placeholder200.png',
                                         fit: BoxFit.cover,
+                                        width: double.infinity,
+                                        height: double.infinity,
                                       );
                                     },
                                   );
@@ -182,17 +188,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
                                 overflow: TextOverflow.ellipsis,
                               ),
                               const SizedBox(height: 4),
-                              if (widget.user.rol == 'administrator')
+                              if (user?.rol == 'administrator')
                                 ElevatedButton(
                                   child: const Text('View Details'),
                                   onPressed: () {
                                     Navigator.pushNamed(
                                       context,
                                       '/category',
-                                      arguments: {
-                                        'category': category,
-                                        'userRole': widget.user.rol,
-                                      },
+                                      arguments: category,
                                     ).then((_) => _updateCategoriesList());
                                   },
                                 ),
@@ -208,14 +211,13 @@ class _CategoriesPageState extends State<CategoriesPage> {
           }
         },
       ),
-      floatingActionButton: widget.user.rol == 'administrator'
+      floatingActionButton: user?.rol == 'administrator'
           ? FloatingActionButton(
               child: const Icon(Icons.add),
               onPressed: () {
                 Navigator.pushNamed(
                   context,
                   '/category',
-                  arguments: {'userRole': widget.user.rol},
                 ).then((_) => _updateCategoriesList());
               },
             )

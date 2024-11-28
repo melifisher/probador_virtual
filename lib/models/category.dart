@@ -15,9 +15,10 @@ class Category {
   }
 
   factory Category.fromMap(Map<String, dynamic> map) {
-    return Category(
-      id: int.parse(map['id']),
-      nombre: map['nombre'],
-    );
-  }
+  return Category(
+    id: map['id'] is int ? map['id'] : int.parse(map['id'].toString()),
+    nombre: map['nombre'],
+  );
+}
+
 }

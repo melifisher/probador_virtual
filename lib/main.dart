@@ -1,22 +1,46 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'models/devolucion.dart';
+import 'providers/auth_provider.dart';
 import 'config/environment/environment.dart';
 import 'config/theme/app_theme.dart';
 import 'screens/auth/login_page.dart';
 import 'screens/auth/register_page.dart';
 import 'screens/product/products_page.dart';
 import 'screens/product/product_detail_page.dart';
-import 'models/user.dart';
 import 'models/product.dart';
 import 'models/category.dart';
+import 'models/alquiler.dart';
 import 'screens/home_page.dart';
 import 'screens/category/categories_page.dart';
 import 'screens/category/category_detail_page.dart';
+import 'screens/client/profile_page.dart';
+import 'screens/alquiler/alquiler_list_screen.dart';
+import 'screens/alquiler/alquiler_detail_page.dart';
+import 'screens/rent/cart_page.dart';
+import 'screens/address/list_address_page.dart';
+import 'screens/address/create_address_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'screens/devolucion/devolucion_list_page.dart';
+import 'screens/devolucion/devolucion_detail_page.dart';
+import 'screens/recommendation/recommended_products_page.dart';
+import 'screens/recommendation/choose_recommendation_page.dart';
+
 
 void main() async {
   await Environment.initEnvironment();
   WidgetsFlutterBinding.ensureInitialized();
+   // Inicializar SharedPreferences y cargar user_id
+  final prefs = await SharedPreferences.getInstance();
+  int? userId = prefs.getInt('user_id'); // Carga el user_id si está guardado
 
-  runApp(const MyApp());
+  runApp(
+    ChangeNotifierProvider(
+      create: (context) => AuthProvider(),
+      
+      child: const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -39,32 +63,73 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
                 builder: (context) => const RegisterView());
           case '/products':
-            final args = settings.arguments as Map<String, dynamic>;
+            final categoryId = settings.arguments as int?;
             return MaterialPageRoute(
                 builder: (context) => ProductsPage(
-                      user: args['user'] as User,
-                      categoryId: args['categoryId'] as int?,
+                      categoryId: categoryId,
                     ));
           case '/product':
-            final args = settings.arguments as Map<String, dynamic>;
+            final product = settings.arguments as Product?;
             return MaterialPageRoute(
               builder: (context) => ProductDetailView(
-                product: args['product'] as Product?,
-                user: args['user'] as User,
+                product: product,
               ),
             );
           case '/categories':
-            final user = settings.arguments as User;
             return MaterialPageRoute(
-                builder: (context) => CategoriesPage(user: user));
+                builder: (context) => const CategoriesPage());
           case '/category':
-            final args = settings.arguments as Map<String, dynamic>;
+            final category = settings.arguments as Category?;
             return MaterialPageRoute(
               builder: (context) => CategoryDetailView(
-                category: args['category'] as Category?,
-                userRole: args['userRole'] as String,
+                category: category,
               ),
             );
+          case '/cart':
+            return MaterialPageRoute(
+              builder: (context) => CartPage(
+                cartItems: [], // Puedes pasar los items del carrito aquí si es necesario
+                rentalDays: 0, // Ajusta los días según la lógica de tu app
+                totalPrice:
+                    0, // Ajusta el precio total según la lógica de tu app
+                
+              ),
+            );
+          case '/listAddress':
+            return MaterialPageRoute(builder: (context) => ListAddressPage());
+
+          case '/addAddress':
+            return MaterialPageRoute(
+              builder: (context) => CreateAddressPage(),
+            );
+
+          case '/profile':
+            return MaterialPageRoute(builder: (context) => const ProfilePage());
+          case '/rentals':
+            return MaterialPageRoute(
+                builder: (context) => const AlquilerListScreen());
+          case '/rental':
+            final alquiler = settings.arguments as Alquiler?;
+            return MaterialPageRoute(
+                builder: (context) => AlquilerDetailPage(
+                      rental: alquiler,
+                    ));
+          case '/devoluciones':
+            return MaterialPageRoute(
+                builder: (context) => const DevolucionListPage());
+          case '/devolucion':
+            final alquiler = settings.arguments as Devolucion?;
+            return MaterialPageRoute(
+                builder: (context) => DevolucionDetailPage(
+                      devolucion: alquiler,
+                    ));
+          case '/recommendations':
+            return MaterialPageRoute(
+                builder: (context) => const ChooseRecommendationsPage());
+          case '/recommended_products':
+            final type = settings.arguments as int?;
+            return MaterialPageRoute(
+                builder: (context) => RecommendationsPage(type: type ?? 0));
           default:
             return MaterialPageRoute(
               builder: (context) => Scaffold(
@@ -74,80 +139,6 @@ class MyApp extends StatelessWidget {
             );
         }
       },
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
-    return Scaffold(
-      appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
-      ),
-      body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
-        child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
 }

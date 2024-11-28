@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../controllers/product_controller.dart';
 import '../../controllers/category_controller.dart';
 import '../../models/product.dart';
-import '../../models/user.dart';
 import '../../models/category.dart';
 import '../../shared/shared.dart';
+import '../client/product_rental_page.dart';
+import '../../providers/auth_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../client/product_order_rental_page.dart';
+import '../probador/video_processing_screen.dart';
 
 class ProductDetailView extends StatefulWidget {
   final Product? product;
-  final User user;
 
-  const ProductDetailView({super.key, this.product, required this.user});
+  const ProductDetailView({super.key, this.product});
 
   @override
   _ProductDetailViewState createState() => _ProductDetailViewState();
@@ -26,8 +30,10 @@ class _ProductDetailViewState extends State<ProductDetailView> {
   late TextEditingController _tallaController;
   late TextEditingController _colorController;
   bool _isEditing = false;
+  bool _alquilerPorPrendaSeleccionado = false;
   List<Category> _categories = [];
   Category? _selectedCategory;
+
   @override
   void initState() {
     super.initState();
@@ -68,11 +74,18 @@ class _ProductDetailViewState extends State<ProductDetailView> {
 
   @override
   Widget build(BuildContext context) {
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.user;
+
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         title: Text(widget.product == null ? 'Add Product' : 'Product Details'),
         actions: [
-          if (widget.user.rol == 'administrator' && widget.product != null)
+          if (user?.rol == 'administrator' && widget.product != null)
             IconButton(
               icon: Icon(_isEditing ? Icons.save : Icons.edit),
               onPressed: () {
@@ -87,7 +100,7 @@ class _ProductDetailViewState extends State<ProductDetailView> {
             ),
         ],
       ),
-      drawer: DrawerWidget(user: widget.user),
+      drawer: const DrawerWidget(),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -102,14 +115,19 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                         decoration:
                             const InputDecoration(labelText: 'Image URL'),
                       )
-                    : Image.network(
-                        widget.product!.imagen == ''
-                            ? 'https://via.placeholder.com/200'
-                            : widget.product!.imagen,
-                        width: 200,
-                        height: 200,
-                        fit: BoxFit.cover,
-                      ),
+                    : widget.product!.imagen == ''
+                        ? Image.asset(
+                            'assets/placeholder200.png',
+                            fit: BoxFit.cover,
+                            width: 200,
+                            height: 200,
+                          )
+                        : Image.network(
+                            widget.product!.imagen,
+                            fit: BoxFit.cover,
+                            width: 200,
+                            height: 200,
+                          ),
               ),
               const SizedBox(height: 16.0),
               TextFormField(
@@ -142,7 +160,6 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                 controller: _tallaController,
                 decoration: const InputDecoration(labelText: 'Tallas'),
                 enabled: _isEditing,
-                //maxLines: 2,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return 'Please enter the sizes';
@@ -190,7 +207,60 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                   ),
                   enabled: false,
                 ),
-              if (widget.user.rol == 'administrator' &&
+              const Spacer(),
+              if (user?.rol == 'client' && user != null)
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      // Verificar si ya existe una opción de alquiler guardada
+                      final prefs = await SharedPreferences.getInstance();
+                      final alquilerOption = prefs.getString('alquilerOption');
+
+                      // Mostrar diálogo si no hay opción guardada
+                      if (alquilerOption == null) {
+                        await _showRentalOptionsDialog();
+                      } else if (alquilerOption == 'prenda') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductRentalPage(
+                              product: widget.product!,
+                              user: user,
+                            ),
+                          ),
+                        );
+                      } else if (alquilerOption == 'pedido') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => ProductOrderRentalPage(
+                              product: widget.product!,
+                              user: user,
+                            ),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text('Alquilar'),
+                  ),
+                ),
+              if (user?.rol == 'client' && user != null)
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VideoProcessingScreen(
+                            garmentUrl: widget.product!.modeloUrl,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Probar Producto'),
+                  ),
+                ),  
+              if (user?.rol == 'administrator' &&
                   widget.product != null &&
                   !_isEditing) ...[
                 const SizedBox(height: 20),
@@ -208,44 +278,46 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     },
                     style:
                         ElevatedButton.styleFrom(backgroundColor: Colors.red),
-                    child: const Text('Delete'),
+                    child: const Text('Delete',
+                        style: TextStyle(color: Colors.white)),
                   ),
                 ),
               ],
-              if (widget.user.rol == 'administrator' &&
+              if (user?.rol == 'administrator' &&
                   widget.product == null &&
                   _isEditing) ...[
                 const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate()) {
-                      Product product = Product(
-                        id: widget.product?.id ?? 0,
-                        nombre: _nameController.text,
-                        precio: double.parse(_priceController.text),
-                        talla: _tallaController.text.split(' '),
-                        color: _colorController.text.split(' '),
-                        imagen: _imagenController.text,
-                        disponible: widget.product?.disponible ?? true,
-                        modeloUrl: widget.product?.modeloUrl ?? '',
-                        categoriaId: _selectedCategory?.id ?? 1,
-                      );
-                      try {
-                        if (widget.product == null) {
-                          await _controller.createProduct(product);
-                          Navigator.pop(context);
-                        } else {
-                          await _controller.updateProduct(product);
-                          _isEditing = false;
-                        }
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Error: $e')),
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState!.validate()) {
+                        Product product = Product(
+                          id: widget.product?.id ?? 0,
+                          nombre: _nameController.text,
+                          precio: double.parse(_priceController.text),
+                          talla: _tallaController.text.split(' '),
+                          color: _colorController.text.split(' '),
+                          imagen: _imagenController.text,
+                          disponible: widget.product?.disponible ?? true,
+                          modeloUrl: widget.product?.modeloUrl ?? '',
+                          categoriaId: _selectedCategory?.id ?? 1,
                         );
+                        try {
+                          if (widget.product == null) {
+                            await _controller.createProduct(product);
+                            Navigator.pop(context);
+                          } else {
+                            await _controller.updateProduct(product);
+                          }
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error: $e')),
+                          );
+                        }
                       }
-                    }
-                  },
-                  child: const Text('Add'),
+                    },
+                    child: const Text('Save'),
+                  ),
                 ),
               ],
             ],
@@ -278,6 +350,55 @@ class _ProductDetailViewState extends State<ProductDetailView> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
+        );
+      }
+    }
+  }
+
+  Future<void> _showRentalOptionsDialog() async {
+    final selectedOption = await showDialog<String>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('¿Cómo deseas alquilar?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('prenda'),
+              child: Text('Alquilar por prenda'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop('pedido'),
+              child: Text('Alquiler por pedido'),
+            ),
+          ],
+        );
+      },
+    );
+
+    // Verificar la opción seleccionada
+    if (selectedOption != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('alquilerOption', selectedOption);
+
+      if (selectedOption == 'prenda') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductRentalPage(
+              product: widget.product!,
+              user: Provider.of<AuthProvider>(context, listen: false).user!,
+            ),
+          ),
+        );
+      } else if (selectedOption == 'pedido') {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProductOrderRentalPage(
+              product: widget.product!,
+              user: Provider.of<AuthProvider>(context, listen: false).user!,
+            ),
+          ),
         );
       }
     }

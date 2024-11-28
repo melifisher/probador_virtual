@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../controllers/auth_controller.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 
 class LoginView extends StatefulWidget {
   const LoginView({super.key});
@@ -9,7 +10,6 @@ class LoginView extends StatefulWidget {
 }
 
 class _LoginViewState extends State<LoginView> {
-  final AuthController _authController = AuthController();
   final _formKey = GlobalKey<FormState>();
   final _usernameController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -17,14 +17,18 @@ class _LoginViewState extends State<LoginView> {
   void _login() async {
     if (_formKey.currentState!.validate()) {
       try {
-        final user = await _authController.login(
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final success = await authProvider.login(
           _usernameController.text,
           _passwordController.text,
         );
-        Navigator.of(context).pushReplacementNamed('/products', arguments: {
-          'user': user,
-          'categoryId': null,
-        });
+        if (success) {
+          Navigator.of(context).pushReplacementNamed('/products');
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Login failed')),
+          );
+        }
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Login failed: $e')),

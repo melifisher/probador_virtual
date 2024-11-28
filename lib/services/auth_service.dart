@@ -45,4 +45,21 @@ class AuthService {
       throw Exception('Error during registration: $e');
     }
   }
+   // Nuevo método para obtener el usuario por ID
+  Future<User> getUserById(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${Environment.apiUrl}/api/users/$userId'),
+        headers: {'Content-Type': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        return User.fromJson(jsonDecode(response.body));
+      } else {
+        throw Exception('Failed to get user by ID: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('Error during getUserById: $e');
+    }
+  }
 }

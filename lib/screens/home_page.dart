@@ -32,7 +32,7 @@ class HomePage extends StatelessWidget {
               width: 150,
             ),
             const SizedBox(height: 20),
-            const Text('Welcome to the Home Page'),
+            const Text('¡Bienvenido a la tienda Eco Armario!'),
           ],
         ),
       ),
