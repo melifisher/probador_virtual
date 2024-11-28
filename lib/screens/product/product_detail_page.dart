@@ -9,6 +9,7 @@ import '../client/product_rental_page.dart';
 import '../../providers/auth_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../client/product_order_rental_page.dart';
+import '../probador/video_processing_screen.dart';
 
 class ProductDetailView extends StatefulWidget {
   final Product? product;
@@ -243,6 +244,22 @@ class _ProductDetailViewState extends State<ProductDetailView> {
                     child: const Text('Alquilar'),
                   ),
                 ),
+              if (user?.rol == 'client' && user != null)
+                Center(
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VideoProcessingScreen(
+                            garmentUrl: widget.product!.modeloUrl,
+                          ),
+                        ),
+                      );
+                    },
+                    child: const Text('Probar Producto'),
+                  ),
+                ),  
               if (user?.rol == 'administrator' &&
                   widget.product != null &&
                   !_isEditing) ...[
