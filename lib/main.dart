@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:probador_virtual/controllers/address_controller.dart';
+import 'package:probador_virtual/screens/payment/qr_payment_page.dart';
 import 'package:provider/provider.dart';
 import 'models/devolucion.dart';
 import 'providers/auth_provider.dart';
@@ -25,19 +27,23 @@ import 'screens/devolucion/devolucion_list_page.dart';
 import 'screens/devolucion/devolucion_detail_page.dart';
 import 'screens/recommendation/recommended_products_page.dart';
 import 'screens/recommendation/choose_recommendation_page.dart';
-
+import 'screens/card/credit_card_widget.dart';
+import 'screens/payment/payment_confirmation_page.dart';
 
 void main() async {
   await Environment.initEnvironment();
   WidgetsFlutterBinding.ensureInitialized();
-   // Inicializar SharedPreferences y cargar user_id
+  // Inicializar SharedPreferences y cargar user_id
   final prefs = await SharedPreferences.getInstance();
   int? userId = prefs.getInt('user_id'); // Carga el user_id si está guardado
 
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => AuthProvider(),
-      
+    runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => AddressController()),
+        // Puedes añadir más providers si es necesario
+      ],
       child: const MyApp(),
     ),
   );
@@ -92,7 +98,6 @@ class MyApp extends StatelessWidget {
                 rentalDays: 0, // Ajusta los días según la lógica de tu app
                 totalPrice:
                     0, // Ajusta el precio total según la lógica de tu app
-                
               ),
             );
           case '/listAddress':
@@ -102,6 +107,9 @@ class MyApp extends StatelessWidget {
             return MaterialPageRoute(
               builder: (context) => CreateAddressPage(),
             );
+          
+
+          
 
           case '/profile':
             return MaterialPageRoute(builder: (context) => const ProfilePage());

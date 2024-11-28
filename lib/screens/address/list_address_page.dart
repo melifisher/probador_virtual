@@ -105,9 +105,9 @@ class _ListAddressPageState extends State<ListAddressPage> {
               setState(() {
                 selectedAddressId = selectedAddressId;
               });
+               Navigator.pop(context, selectedAddressId);
+            //  Navigator.pop(context, selectedAddressId);
 
-              // Regresa al contexto previo (opcional)
-              //  Navigator.pop(context, selectedAddressId);
             }
           },
           child: Text('Aceptar'),

@@ -23,7 +23,7 @@ class DrawerWidget extends StatelessWidget {
             },
             child: DrawerHeader(
               decoration: const BoxDecoration(
-                color: Colors.blue,
+                color: Color.fromARGB(255, 205, 147, 208),
               ),
               child: Row(
                 children: [
@@ -107,7 +107,7 @@ class DrawerWidget extends StatelessWidget {
             ),
           ListTile(
             leading: const Icon(Icons.location_on_sharp),
-            title: user?.rol == 'client' ? const Text('Mis Direcciones') : null,
+            title: user?.rol == 'client' ? const Text('Mis Direcciones') : const Text('Direcciones'),
             onTap: () {
               Navigator.pushNamed(
                 context,
