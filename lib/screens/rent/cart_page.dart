@@ -104,9 +104,9 @@ class _CartPageState extends State<CartPage> {
     });
 
     // Agregar el costo de delivery si está seleccionado
-    setState(() {
-      totalPrice =
-          itemsTotal + (deliveryOption == "delivery" ? deliveryCost : 0.0);
+     setState(() {
+      totalPrice = itemsTotal +
+          (deliveryOption == "delivery" ? deliveryCost : 0.0); // Condición
     });
   }
 
@@ -231,6 +231,7 @@ class _CartPageState extends State<CartPage> {
                     builder: (context) => PaymentConfirmationPage(
                       cartItems: cartItems, // Pasa los productos del carrito
                       totalAmount: totalPrice, // Pasa el total calculado
+                      deliveryOption: deliveryOption,
                     ),
                   ),
                 );

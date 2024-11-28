@@ -100,8 +100,7 @@ Future<void> _fetchAddresses() async {
               setState(() {
                 selectedAddressId = selectedAddressId;
               });
-
-              // Regresa al contexto previo (opcional)
+               Navigator.pop(context, selectedAddressId);
             //  Navigator.pop(context, selectedAddressId);
             }
           },

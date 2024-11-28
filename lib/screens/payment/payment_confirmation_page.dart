@@ -7,11 +7,13 @@ import '../../models/cart.dart';
 class PaymentConfirmationPage extends StatefulWidget {
   final List<Cart> cartItems; // Lista de productos en el carrito
   final double totalAmount;
+  final String deliveryOption; // Opción de entrega seleccionada
 
   const PaymentConfirmationPage({
     Key? key,
     required this.cartItems,
     required this.totalAmount,
+    required this.deliveryOption, // Recibe la opción de entrega
   }) : super(key: key);
 
   @override
@@ -20,10 +22,37 @@ class PaymentConfirmationPage extends StatefulWidget {
 }
 
 class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
-  int selectedTip = 5; // Propina seleccionada
   final String deliveryTime = "40-60 min"; // Tiempo estimado de entrega
   final double deliveryCost = 10.0; // Costo fijo de delivery
   int selectedPaymentMethod = 0; // Índice del método de pago seleccionado
+  Address? selectedAddress; // Dirección seleccionada para la entrega
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSelectedAddress(); // Cargar la dirección seleccionada al inicio
+  }
+
+  Future<void> _loadSelectedAddress() async {
+    // Obtiene la dirección seleccionada desde el AddressController
+    final addressController =
+        Provider.of<AddressController>(context, listen: false);
+
+    setState(() {
+      selectedAddress = addressController.addresses.firstWhere(
+        (address) =>
+            address.isSelected, // Busca la dirección marcada como seleccionada
+        orElse: () => addressController
+            .addresses.first, // Si no hay seleccionada, toma la primera
+      );
+    });
+  }
+
+  void _changeSelectedAddress(Address newAddress) {
+    setState(() {
+      selectedAddress = newAddress; // Actualiza la dirección seleccionada
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +64,9 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
           )
         : null;
 
-    final double totalWithTip = widget.totalAmount + selectedTip;
+    // Ajustar el total en función de la opción seleccionada
+    final double adjustedTotal = widget.totalAmount +
+        (widget.deliveryOption == "delivery" ? deliveryCost : 0.0);
 
     return Scaffold(
       appBar: AppBar(
@@ -48,20 +79,11 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
             const Padding(
               padding: EdgeInsets.all(16.0),
               child: Text(
-                "¿Cómo quieres pagar?",
+                "¿Cómo desea pagar?",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
-            _buildPaymentMethodSelector(),
-            const Divider(),
-            const Padding(
-              padding: EdgeInsets.all(16.0),
-              child: Text(
-                "Datos de entrega",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-            ),
-            _buildDeliveryDetails(selectedAddress),
+            _buildPaymentMethodCarousel(),
             const Divider(),
             const Padding(
               padding: EdgeInsets.all(16.0),
@@ -72,10 +94,19 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
             ),
             _buildOrderSummary(),
             const Divider(),
+            const Padding(
+              padding: EdgeInsets.all(16.0),
+              child: Text(
+                "Datos de entrega",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+            ),
+            _buildDeliveryDetails(selectedAddress),
+            const Divider(),
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                "Total: Bs. ${totalWithTip.toStringAsFixed(2)}",
+                "Total: Bs. ${adjustedTotal.toStringAsFixed(2)}",
                 style:
                     const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
@@ -85,6 +116,10 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
               child: ElevatedButton(
                 onPressed: () {
                   // Acción para confirmar el pedido
+                  final paymentMethod = selectedPaymentMethod == 0
+                      ? "Tarjeta"
+                      : "QR"; // Determina el método de pago
+                  print("Método de pago seleccionado: $paymentMethod");
                 },
                 child: const Text("Confirmar Pedido"),
               ),
@@ -95,16 +130,16 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
     );
   }
 
-  Widget _buildPaymentMethodSelector() {
+  Widget _buildPaymentMethodCarousel() {
     return SizedBox(
-      height: 100,
+      height: 120, // Altura del carrusel
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
           GestureDetector(
             onTap: () {
               setState(() {
-                selectedPaymentMethod = 0;
+                selectedPaymentMethod = 0; // Selecciona "Tarjeta"
               });
             },
             child: _buildPaymentOption(
@@ -116,7 +151,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
           GestureDetector(
             onTap: () {
               setState(() {
-                selectedPaymentMethod = 1;
+                selectedPaymentMethod = 1; // Selecciona "QR"
               });
             },
             child: _buildPaymentOption(
@@ -136,7 +171,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
     required IconData icon,
   }) {
     return Container(
-      width: 150,
+      width: 160,
       margin: const EdgeInsets.symmetric(horizontal: 8.0),
       padding: const EdgeInsets.all(16.0),
       decoration: BoxDecoration(
@@ -150,7 +185,11 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 40, color: selected ? Colors.white : Colors.black),
+          Icon(
+            icon,
+            size: 40,
+            color: selected ? Colors.white : Colors.black,
+          ),
           const SizedBox(height: 10),
           Text(
             title,
@@ -174,7 +213,9 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
               const Icon(Icons.delivery_dining, size: 40, color: Colors.blue),
               const SizedBox(width: 10),
               Text(
-                "Delivery: $deliveryTime",
+                widget.deliveryOption == "delivery"
+                    ? "Delivery: $deliveryTime"
+                    : "Retiro en tienda",
                 style:
                     const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
@@ -194,9 +235,15 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
                 ),
               ),
               TextButton(
-                onPressed: () {
-                  // Acción para cambiar la dirección
-                  Navigator.pushNamed(context, '/listAddress');
+                onPressed: () async {
+                  // Simulación de cambiar dirección (navegación a una pantalla de selección)
+                  Address newAddress = await Navigator.pushNamed(
+                    context,
+                    '/listAddress',
+                  ) as Address;
+
+                  // Actualiza la dirección seleccionada
+                  _changeSelectedAddress(newAddress);
                 },
                 child: const Text("Cambiar"),
               ),
@@ -210,6 +257,7 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
   Widget _buildOrderSummary() {
     return Column(
       children: [
+        // Mostrar productos del carrito
         ...widget.cartItems.map((cartItem) {
           double totalItem = cartItem.cantidad *
               cartItem.rentalDays *
@@ -233,40 +281,26 @@ class _PaymentConfirmationPageState extends State<PaymentConfirmationPage> {
             ),
           );
         }).toList(),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Costo de delivery:",
-                style: TextStyle(fontSize: 16),
-              ),
-              Text(
-                "Bs.${deliveryCost.toStringAsFixed(2)}",
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
+        // Mostrar el costo de delivery si aplica
+        if (widget.deliveryOption == "delivery")
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  "Costo de delivery:",
+                  style: TextStyle(fontSize: 16),
+                ),
+                Text(
+                  "Bs.${deliveryCost.toStringAsFixed(2)}",
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
           ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Propina:",
-                style: TextStyle(fontSize: 16),
-              ),
-              Text(
-                "Bs.${selectedTip.toStringAsFixed(2)}",
-                style:
-                    const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }
