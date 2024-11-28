@@ -145,6 +145,12 @@ class _ProductsPageState extends State<ProductsPage> {
                                   : Image.network(
                                       product.imagen,
                                       fit: BoxFit.cover,
+                                      errorBuilder:
+                                          (context, error, stackTrace) {
+                                        return const Center(
+                                          child: Icon(Icons.error_outline),
+                                        );
+                                      },
                                     ),
                             ),
                           ),

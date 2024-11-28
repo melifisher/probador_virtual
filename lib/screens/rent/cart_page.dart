@@ -7,7 +7,15 @@ import 'package:provider/provider.dart';
 import '../../models/address.dart';
 import '../../controllers/address_controller.dart';
 import '../../providers/auth_provider.dart';
+
 import '../payment/payment_confirmation_page.dart';
+
+import '../../shared/shared.dart';
+import '../../models/alquiler.dart';
+import '../../models/detalle_alquiler.dart';
+import '../../controllers/alquiler_controller.dart';
+import '../../controllers/detalle_alquiler_controller.dart';
+
 
 class CartPage extends StatefulWidget {
   final List<Cart> cartItems;
@@ -132,6 +140,7 @@ class _CartPageState extends State<CartPage> {
       appBar: AppBar(
         title: const Text('Carrito de Alquiler'),
       ),
+      drawer: const DrawerWidget(),
       body: Column(
         children: [
           // Opciones de entrega (Delivery o Retiro)

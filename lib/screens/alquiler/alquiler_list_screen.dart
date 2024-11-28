@@ -4,6 +4,7 @@ import '../../controllers/alquiler_controller.dart';
 import '../../models/alquiler.dart';
 import '../../models/user.dart';
 import '../../providers/auth_provider.dart';
+import '../../shared/shared.dart';
 
 class AlquilerListScreen extends StatefulWidget {
   const AlquilerListScreen({super.key});
@@ -43,6 +44,7 @@ class _AlquilerListScreenState extends State<AlquilerListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Lista de Alquileres')),
+      drawer: const DrawerWidget(),
       body: ListView.builder(
         itemCount: _alquileres.length,
         itemBuilder: (context, index) {
